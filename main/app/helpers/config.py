@@ -3,12 +3,13 @@
 import logging
 from helpers.constants import APPLICATION_NAME
 from helpers.common import whoami
+#from helpers.logger import AppLogger
 from inspect import currentframe
 
-mod_logger = logging.getLogger(f'{APPLICATION_NAME}.{whoami(currentframe()).split(".")[0]}')
-mod_logger.propagate = True
-mod_logger.debug('Entering module %s', whoami(currentframe()))
-print(f'{mod_logger.parent=}')
+#mod_logger = AppLogger(f'{APPLICATION_NAME}.{whoami(currentframe()).split(".")[0]}')
+#mod_logger.propagate = True
+logging.debug('Entering module %s', whoami(currentframe()))
+#print(f'{mod_logger.parent=}')
 
 def check_for_config_file(config_file="config.ini") -> str:
     """
@@ -17,21 +18,21 @@ def check_for_config_file(config_file="config.ini") -> str:
     :param confFile: Location for configuration file.
     """
 
-    mod_logger.debug('Entering function %s', whoami(currentframe()))
+    logging.debug('Entering function %s', whoami(currentframe()))
 
     try:
         from pathlib import Path
         if Path.is_file(config_file):
-            mod_logger.debug('Found config file - %s', config_file)
+            logging.debug('Found config file - %s', config_file)
             return config_file
 
         else:
-            mod_logger.debug('Could not find %s file...', config_file)
-            mod_logger.debug('Using DEFAULT configuration settings...')
+            logging.debug('Could not find %s file...', config_file)
+            logging.debug('Using DEFAULT configuration settings...')
             return 'DEFAULTS'
 
     finally:
-        mod_logger.debug('Leaving function %s', whoami(currentframe()))
+        logging.debug('Leaving function %s', whoami(currentframe()))
 
 
 def process_config(config_file):
@@ -40,7 +41,7 @@ def process_config(config_file):
     
     :param config_file: str -> File location of config file
     """
-    mod_logger.debug('Entering function %s', whoami(currentframe()))
+    logging.debug('Entering function %s', whoami(currentframe()))
 
     try:
         from configparser import ConfigParser
@@ -50,7 +51,7 @@ def process_config(config_file):
 
         return config
     finally:
-        mod_logger.debug('Leaving function %s', whoami(currentframe()))
+        logging.debug('Leaving function %s', whoami(currentframe()))
 
 conf_file = check_for_config_file()
 conf = process_config(conf_file)
@@ -70,4 +71,14 @@ DB_PASSWORD = conf.get('database','db_password',fallback='postgres')
 
 DB_URI = f'postgres+psycopg2://{DB_USER}:{DB_PASSWORD}@{DB_HOSTNAME}:{DB_PORT}/{DB_NAME}'
 # Scheme: "postgres+psycopg2://<USERNAME>:<PASSWORD>@<IP_ADDRESS>:<PORT>/<DATABASE_NAME>"
-mod_logger.debug(f'{DB_URI=}')
+logging.debug(f'{DB_URI=}')
+
+
+# Logging Constants
+print(f'{logging.getLevelNamesMapping()['info'.upper()]=}')
+LOG_LEVEL = logging.getLevelNamesMapping()[conf.get('logging','log_level',fallback='info').upper()]
+LOG_FILE_LEVEL = logging.getLevelNamesMapping()[conf.get('logging','log_file_level',fallback='critical').upper()]
+LOG_FILE = conf.get('logging','log_file',fallback='PowerIPAM.log')
+LOG_DIR = conf.get('logging','log_dir',fallback='./logs')
+
+LOG_LOCATION = f'{LOG_DIR}/{LOG_FILE}'

@@ -16,6 +16,7 @@ from inspect import currentframe
 from helpers.common import whoami
 import helpers.constants as c
 import helpers.config as conf
+from helpers.logger import AppLogger
 
 def handler() -> None:
     """
@@ -26,18 +27,9 @@ def handler() -> None:
     """
 
     # print(whoami(currentframe()))
-    app_logger = logging.getLogger(f'{c.APPLICATION_NAME}.{whoami(currentframe()).split(".")[0]}')
-    app_logger.setLevel(logging.DEBUG)
-    app_logger.propagate = False
+    app_logger = AppLogger(f'{c.APPLICATION_NAME}.{whoami(currentframe()).split(".")[0]}',propagate=False)
 
-    from sys import stdout
-    conLogHandler = logging.StreamHandler(stdout)
-    conLogHandler.setLevel(logging.DEBUG)
-    conLogHandler.setFormatter(c.DEFAULT_LOG_FORMATTER)
-
-    app_logger.addHandler(conLogHandler)
-
-    app_logger.debug('Starting PowerIPAM Server Application...')
+    app_logger.info('Starting PowerIPAM Server Application...')
     #print(f'{app_logger.handlers=}')
     #print(f'{app_logger.parent=}')
     #print(f'{app_logger.root.handlers=}')
@@ -49,6 +41,7 @@ def handler() -> None:
 if __name__ == "__main__":
     #print('--- 002 ---')
     root_logger = logging.getLogger('root')
+    print(f'{root_logger=}')
     root_logger.info('Starting PowerIPAM Server from command line...')
     root_logger.debug(f'{__file__=}')
 
