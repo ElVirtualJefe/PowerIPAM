@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+import "common.proto";
+
+service IpAddressService {
+    rpc GetIpAddressById (IpAddressRequest) returns (IpAddressResponse);
+    rpc AddIpAddress (IpAddress) returns (IpAddressResponse);
+    rpc UpdateIpAddress (IpAddress) returns (IpAddressResponse);
+    rpc DeleteIpAddressById (IpAddressRequest) returns (IpAddressResponse);
+}
+
+message IpAddress {
+    string id = 1;
+    string ip_address = 2;
+    string owner = 3;
+    string description = 4;
+    bool is_gateway = 5;
+    string hostname = 6;
+    StateId state_id = 7;
+    bool is_available = 8;
+    
+
+    google.protobuf.Timestamp last_seen = 14;
+    google.protobuf.Timestamp last_modified = 15;
+    google.protobuf.Timestamp date_created = 16;
+    string subnet_id = 17;
+    string mac_address = 18;
+}
+message IpAddressRequest {
+    oneof request_field {
+        string id = 1;
+        string name = 2;
+        string subnet_id = 3;
+    }
+}
+
+message IpAddressResponse {
+    repeated IpAddress ip_address = 1;
+}
+
