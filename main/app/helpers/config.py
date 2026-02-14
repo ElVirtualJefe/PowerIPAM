@@ -75,9 +75,9 @@ logging.debug(f'{DB_URI=}')
 
 
 # Logging Constants
-print(f'{logging.getLevelNamesMapping()['info'.upper()]=}')
 LOG_LEVEL = logging.getLevelNamesMapping()[conf.get('logging','log_level',fallback='info').upper()]
-LOG_FILE_LEVEL = logging.getLevelNamesMapping()[conf.get('logging','log_file_level',fallback='critical').upper()]
+LOG_FILE_LEVEL = logging.getLevelNamesMapping()[conf.get('logging','log_file_level',fallback='warning').upper()]
+logging.debug(f'{LOG_FILE_LEVEL=}')
 LOG_FILE = conf.get('logging','log_file',fallback='PowerIPAM.log')
 LOG_DIR = conf.get('logging','log_dir',fallback='./logs')
 
