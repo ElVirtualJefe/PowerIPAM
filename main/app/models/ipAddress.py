@@ -4,9 +4,9 @@ from datetime import datetime
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy import Column,String,ForeignKey,Boolean,DateTime
 from sqlalchemy import func,text,cast
-from helpers.database import Base
+from helpers.constants import BASE
 
-class IpAddressModel(Base):
+class IpAddressModel(BASE):
     """
     IP Address Model
     """

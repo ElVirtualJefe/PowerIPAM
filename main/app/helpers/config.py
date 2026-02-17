@@ -1,15 +1,19 @@
 
 
 import logging
-from helpers.constants import APPLICATION_NAME
+from helpers.constants import APPLICATION_NAME,DEFAULT_DEBUG_LOG_FILE
 from helpers.common import whoami
 #from helpers.logger import AppLogger
 from inspect import currentframe
 
-#mod_logger = AppLogger(f'{APPLICATION_NAME}.{whoami(currentframe()).split(".")[0]}')
+mod_logger = logging.getLogger(f'{APPLICATION_NAME}').getChild(f'{whoami(currentframe())}')
 #mod_logger.propagate = True
+#mod_logger.debug('Entering module %s', whoami(currentframe()))
 logging.debug('Entering module %s', whoami(currentframe()))
+#print(f'{mod_logger.name=}')
 #print(f'{mod_logger.parent=}')
+#print(f'{mod_logger.parent=}')
+
 
 def check_for_config_file(config_file="config.ini") -> str:
     """
@@ -69,7 +73,7 @@ DB_NAME = conf.get('database','db_name',fallback='poweripam')
 DB_USER = conf.get('database','db_username',fallback='postgres')
 DB_PASSWORD = conf.get('database','db_password',fallback='postgres')
 
-DB_URI = f'postgres+psycopg2://{DB_USER}:{DB_PASSWORD}@{DB_HOSTNAME}:{DB_PORT}/{DB_NAME}'
+DB_URI = f'postgresql+psycopg2://{DB_USER}:{DB_PASSWORD}@{DB_HOSTNAME}:{DB_PORT}/{DB_NAME}'
 # Scheme: "postgres+psycopg2://<USERNAME>:<PASSWORD>@<IP_ADDRESS>:<PORT>/<DATABASE_NAME>"
 logging.debug(f'{DB_URI=}')
 
@@ -82,3 +86,4 @@ LOG_FILE = conf.get('logging','log_file',fallback='PowerIPAM.log')
 LOG_DIR = conf.get('logging','log_dir',fallback='./logs')
 
 LOG_LOCATION = f'{LOG_DIR}/{LOG_FILE}'
+

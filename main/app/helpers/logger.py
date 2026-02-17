@@ -2,107 +2,130 @@
 Docstring for main.app.helpers.logger
 """
 
-from sys import stdout
+from pathlib import Path
 import logging
+from logging.config import dictConfig
+from helpers.constants import EXTRA_LOGGING_FORMAT,DEFAULT_LOG_DATE_FORMAT,DEFAULT_DEBUG_LOG_LOCATION,DEFAULT_LOG_DIR,DEFAULT_LOG_FORMAT
+
+DEFAULT_LOGGING_CONFIG = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+#            "json": {
+#                "format": "%(asctime)s %(levelname)s %(message)s",
+#                "class": "pythonjsonlogger.jsonlogger.JsonFormatter",
+#            },
+        "debug": {
+            "format": EXTRA_LOGGING_FORMAT,
+            "datefmt": DEFAULT_LOG_DATE_FORMAT
+        }
+    },
+    "handlers": {
+        "root_console": {
+            "level": "INFO",
+            "formatter": "debug",
+            "class": "logging.StreamHandler",
+            "stream": "ext://sys.stdout"
+        },
+        "debug_file": {
+            "level": "DEBUG",
+            "formatter": "debug",
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": DEFAULT_DEBUG_LOG_LOCATION,
+            "mode": "a",
+            "maxBytes": 10485760,
+            "backupCount": 10
+        }
+    },
+    "loggers": {
+        "": {
+            "level": "NOTSET",
+            "handlers": ["root_console", "debug_file"],
+            "propagate": False
+        }
+    }
+}
+
+if not Path.is_dir(DEFAULT_LOG_DIR):
+    Path(DEFAULT_LOG_DIR).mkdir(644,parents=True)
+dictConfig(DEFAULT_LOGGING_CONFIG)
+logging.debug('----------===== Configured default root logger =====----------')
+
+
 from helpers.config import LOG_LEVEL,LOG_FILE_LEVEL,LOG_LOCATION
-from helpers.constants import DEFAULT_LOG_FORMATTER,DEFAULT_DEBUG_LOG_LOCATION
+#from helpers.constants import DEFAULT_LOG_FORMATTER,DEFAULT_DEBUG_LOG_LOCATION,DEFAULT_LOG_FORMAT,DEFAULT_LOG_DATE_FORMAT,EXTRA_LOGGING_FORMAT
 
-class AppLogger():    
-    logger = None
-    name = None
+def configure_logging():
+    LOGGING_CONFIG = {
+        "version": 1,
+        "disable_existing_loggers": False,
+        "formatters": {
+#            "json": {
+#                "format": "%(asctime)s %(levelname)s %(message)s",
+#                "class": "pythonjsonlogger.jsonlogger.JsonFormatter",
+#            },
+            "syslog": {
+                "format": DEFAULT_LOG_FORMAT,
+                "datefmt": DEFAULT_LOG_DATE_FORMAT,
+                "defaults": {
+                    "ip": None
+                }
+            },
+            "standard": {
+                "format": DEFAULT_LOG_FORMAT,
+                "datefmt": DEFAULT_LOG_DATE_FORMAT
+            },
+            "debug": {
+                "format": EXTRA_LOGGING_FORMAT,
+                "datefmt": DEFAULT_LOG_DATE_FORMAT
+            }
+        },
+        "handlers": {
+            "console": {
+                "level": "INFO",
+                "formatter": "standard",
+                "class": "logging.StreamHandler",
+                "stream": "ext://sys.stdout"
+            },
+            "log_file": {
+                "level": LOG_FILE_LEVEL,
+                "formatter": "standard",
+                "class": "logging.handlers.RotatingFileHandler",
+                "filename": f"{LOG_LOCATION}",
+                "mode": "a",
+                "maxBytes": 10485760,
+                "backupCount": 5
+            },
+            "debug_file": {
+                "level": "DEBUG",
+                "formatter": "debug",
+                "class": "logging.handlers.RotatingFileHandler",
+                "filename": DEFAULT_DEBUG_LOG_LOCATION,
+                "mode": "a",
+                "maxBytes": 10485760,
+                "backupCount": 10
+            }
+        },
+        "loggers": {
+            "": {
+                "level": "NOTSET",
+                "handlers": ["console", "debug_file"],
+                "propagate": False
+            },
+            "PowerIPAM": {
+                "level": LOG_LEVEL,
+                "handlers": ["console", "log_file", "debug_file"],
+                "propagate": False
+            },
+            "__main__": {
+                "level": "WARNING",
+                "handlers": ["log_file"],
+                "propagate": True
+            }
+        }
+    }
 
-    def __init__(self,name,propagate=True):
-        self.name = name
-        self.logger = logging.getLogger(name)
-        self.logger.setLevel(logging.DEBUG)
-        self.logger.propagate = propagate
 
-        console_log_handler = logging.StreamHandler(stdout)
-        console_log_handler.setLevel(LOG_LEVEL)
-        console_log_handler.setFormatter(DEFAULT_LOG_FORMATTER)
-        self.logger.addHandler(console_log_handler)
 
-        file_log_handler = logging.FileHandler(LOG_LOCATION)
-        file_log_handler.setLevel(LOG_FILE_LEVEL)
-        file_log_handler.setFormatter(DEFAULT_LOG_FORMATTER)
-        self.logger.addHandler(file_log_handler)
-
-        debug_file_log_handler = logging.FileHandler(DEFAULT_DEBUG_LOG_LOCATION)
-        debug_file_log_handler.setLevel(logging.DEBUG)
-        debug_file_log_handler.setFormatter(DEFAULT_LOG_FORMATTER)
-        self.logger.addHandler(debug_file_log_handler)
-
-    def __repr__(self) -> str:
-        
-        return f"""<--
-AppLogger - {self.name}
-Handlers - {self.logger.handlers}
--->"""
-      
-    def log(self,msg,level='info'):
-        """
-        Docstring for log
-        
-        :param self: Description
-        :param msg: Description
-        :param level: Description
-        """
-        match level:
-            case 'debug':
-                self.logger.debug(msg)
-            case 'critical':
-                self.logger.critical(msg)
-            case 'error':
-                self.logger.error(msg)
-            case 'warning':
-                self.logger.warning(msg)
-            case 'info':
-                self.logger.info(msg)
-            case _:
-                self.logger.info(msg)
-    
-    def debug(self,msg):
-        """
-        Docstring for debug
-        
-        :param self: Description
-        :param msg: Description
-        """
-        self.log(msg,'debug')
-
-    def critical(self,msg):
-        """
-        Docstring for critical
-        
-        :param self: Description
-        :param msg: Description
-        """
-        self.log(msg,'critical')
-
-    def error(self,msg):
-        """
-        Docstring for error
-        
-        :param self: Description
-        :param msg: Description
-        """
-        self.log(msg,'error')
-
-    def warning(self,msg):
-        """
-        Docstring for warning
-        
-        :param self: Description
-        :param msg: Description
-        """
-        self.log(msg,'warning')
-
-    def info(self,msg):
-        """
-        Docstring for info
-        
-        :param self: Description
-        :param msg: Description
-        """
-        self.log(msg,'info')
+    dictConfig(LOGGING_CONFIG)
 

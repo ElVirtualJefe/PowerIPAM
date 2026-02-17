@@ -7,32 +7,26 @@ Purpose: This is the main service for the PowerIPAM Application
 
 import logging
 from pathlib import Path
-from helpers.constants import DEFAULT_LOG_FORMAT,DEFAULT_LOG_DIR
+from helpers.constants import DEFAULT_LOG_FORMAT,DEFAULT_LOG_DIR,DEFAULT_DEBUG_LOG_LOCATION
 #from helpers.logger import setup_basic_logging
 
-def setup_basic_logging(log_level=logging.DEBUG,log_fmt=DEFAULT_LOG_FORMAT,log_dir=DEFAULT_LOG_DIR) -> None:
-    """
-    Docstring for setup_basic_logging
-    
-    :param level: Description
-    :param format: Description
-    """
+# START ---  Build basic logging to catch any logs that are not from a constructed logger.
+if not Path.is_dir(DEFAULT_LOG_DIR):
+    Path(DEFAULT_LOG_DIR).mkdir(644,parents=True)
 
-    if not Path.is_dir(log_dir):
-        Path(dir).mkdir(644,parents=True)
-    
-    logging.basicConfig(level=log_level,
-                        format=log_fmt,
-                        filename=f'{log_dir}/PowerIPAM-debug.log')
+#logging.basicConfig(level=logging.DEBUG,
+#                    format=DEFAULT_LOG_FORMAT,
+#                    filename=DEFAULT_DEBUG_LOG_LOCATION)
+# END ---  Basic Logging
 
-setup_basic_logging()
+from helpers.logger import configure_logging
+configure_logging()
 logging.debug('----------===== Start of new Program Execution =====----------')
 
-from inspect import currentframe
 from helpers.common import whoami
-import helpers.constants as c
-import helpers.config as conf
-from helpers.logger import AppLogger
+from helpers import constants as c
+from  helpers import config as conf
+#from helpers.logger import AppLogger
 
 def handler() -> None:
     """
@@ -42,16 +36,24 @@ def handler() -> None:
 
     """
 
-    app_logger = AppLogger(f'{c.APPLICATION_NAME}.{whoami(currentframe()).split(".")[0]}',propagate=False)
-    logging.debug(f'{app_logger=}')
+    #print(__name__)
+    app_logger = logging.getLogger(f'{c.APPLICATION_NAME}').getChild(f'{whoami(logging.currentframe()).split(".")[0]}')
+    #logging.debug(f'{app_logger=}')
+    #print(f'{app_logger.name=}')
+    #print(f'{app_logger.parent=}')
     app_logger.info('Starting PowerIPAM Server Application...')
 
     from helpers.database import create_db_connection
+    session = create_db_connection(conf.DB_URI)
+    app_logger.debug(f'{session.info=}')
+
+    app_logger.info('Closing DB Connection...')
+    session.close()
 
     return
 
 if __name__ == "__main__":
-    root_logger = logging.getLogger('root')
+    root_logger = logging.getLogger('PowerIPAM')
     root_logger.info('Starting PowerIPAM Server from command line...')
     root_logger.debug(f'{__file__=}')
 

@@ -2,6 +2,8 @@ from argparse import ArgumentParser
 from  helpers.constants import APPLICATION_NAME,APPLICATION_VERSION
 import logging
 
+
+
 def parse_args() -> dict:
     """
     Docstring for parse_args
