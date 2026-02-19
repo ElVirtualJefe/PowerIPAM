@@ -27,6 +27,7 @@ message IpAddress {
     string subnet_id = 17;
     string mac_address = 18;
 }
+
 message IpAddressRequest {
     oneof request_field {
         string id = 1;
