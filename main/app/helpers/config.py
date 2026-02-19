@@ -1,8 +1,12 @@
-
-
 import logging
-from helpers.constants import APPLICATION_NAME,DEFAULT_DEBUG_LOG_FILE
-from helpers.common import whoami
+
+if __name__ == 'app.helpers.config':
+    from app.helpers.constants import APPLICATION_NAME,DEFAULT_DEBUG_LOG_FILE
+    from app.helpers.common import whoami
+else:
+    from helpers.constants import APPLICATION_NAME,DEFAULT_DEBUG_LOG_FILE
+    from helpers.common import whoami
+
 #from helpers.logger import AppLogger
 from inspect import currentframe
 

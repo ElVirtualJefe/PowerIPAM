@@ -5,8 +5,13 @@ from sqlalchemy import pool
 
 from alembic import context
 
-from helpers.config import DB_URI
-from helpers.constants import BASE
+#import sys
+#sys.path = ['..\\..'] + sys.path[1:]
+
+from app.helpers.config import DB_URI
+from app.helpers.constants import BASE
+
+print(f'{DB_URI=}')
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

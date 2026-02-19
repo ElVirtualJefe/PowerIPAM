@@ -2,6 +2,7 @@
 =============================
 
 ### To-Do:
+- Figure out directory structure and stop using relative paths
 - Implement everything into classes instead of random functions
 - Implement config.ini parsing
 - Implement logging setup functions
