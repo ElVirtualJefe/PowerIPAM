@@ -28,7 +28,7 @@ from helpers import constants as c
 from  helpers import config as conf
 #from helpers.logger import AppLogger
 
-def handler() -> None:
+def handler(args) -> None:
     """
     Docstring for handler
 
@@ -47,6 +47,16 @@ def handler() -> None:
     session = create_db_connection(conf.DB_URI)
     app_logger.debug(f'{session.info=}')
 
+    if args.test_implementations:
+        app_logger.info('Testing Implementations...')
+        import sys
+        from pathlib import Path
+        sys.path.insert(0,str(Path('./tests').absolute()))
+        from test_implementations import PowerIPAMtesting
+        test_case = PowerIPAMtesting(session)
+        test_case.do_testing()
+        app_logger.info('Implementation Testing Complete...')
+
     app_logger.info('Closing DB Connection...')
     session.close()
 
@@ -59,8 +69,9 @@ if __name__ == "__main__":
 
     root_logger.debug('Checking for command line arguments')
     from helpers.command_line import parse_args
-    parse_args()
+    args = parse_args()
 
-    handler()
+    handler(args)
+
     root_logger.debug('Stopping PowerIPAM Server...')
     

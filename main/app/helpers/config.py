@@ -27,21 +27,21 @@ def check_for_config_file(config_file="config.ini") -> str:
     :param confFile: Location for configuration file.
     """
     current_func_name = whoami(logging.currentframe())
-    logging.debug('Entering function %s', current_func_name)
+    mod_logger.debug('Entering function %s', current_func_name)
 
     try:
         from pathlib import Path
         if Path.is_file(config_file):
-            logging.debug('Found config file - %s', config_file)
+            mod_logger.debug('Found config file - %s', config_file)
             return config_file
 
         else:
-            logging.debug('Could not find %s file...', config_file)
-            logging.debug('Using DEFAULT configuration settings...')
+            mod_logger.debug('Could not find %s file...', config_file)
+            mod_logger.debug('Using DEFAULT configuration settings...')
             return 'DEFAULTS'
 
     finally:
-        logging.debug('Leaving function %s', current_func_name)
+        mod_logger.debug('Leaving function %s', current_func_name)
 
 
 def process_config(config_file):
@@ -51,7 +51,7 @@ def process_config(config_file):
     :param config_file: str -> File location of config file
     """
     current_func_name = whoami(logging.currentframe())
-    logging.debug('Entering function %s', current_func_name)
+    mod_logger.debug('Entering function %s', current_func_name)
 
     try:
         from configparser import ConfigParser
@@ -61,7 +61,7 @@ def process_config(config_file):
 
         return config
     finally:
-        logging.debug('Leaving function %s', current_func_name)
+        mod_logger.debug('Leaving function %s', current_func_name)
 
 conf_file = check_for_config_file()
 conf = process_config(conf_file)
@@ -81,13 +81,13 @@ try:
 
     DB_URI = f'postgresql+psycopg2://{DB_USER}:{DB_PASSWORD}@{DB_HOSTNAME}:{DB_PORT}/{DB_NAME}'
     # Scheme: "postgres+psycopg2://<USERNAME>:<PASSWORD>@<IP_ADDRESS>:<PORT>/<DATABASE_NAME>"
-    logging.debug(f'{DB_URI=}')
+    mod_logger.debug(f'{DB_URI=}')
 
 
     # Logging Constants
     LOG_LEVEL = logging.getLevelNamesMapping()[conf.get('logging','log_level',fallback='info').upper()]
     LOG_FILE_LEVEL = logging.getLevelNamesMapping()[conf.get('logging','log_file_level',fallback='warning').upper()]
-    logging.debug(f'{LOG_FILE_LEVEL=}')
+    mod_logger.debug(f'{LOG_FILE_LEVEL=}')
     LOG_FILE = conf.get('logging','log_file',fallback='PowerIPAM.log')
     LOG_DIR = conf.get('logging','log_dir',fallback='./logs')
 

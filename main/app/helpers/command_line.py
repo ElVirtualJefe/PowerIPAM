@@ -28,6 +28,11 @@ def parse_args() -> dict:
                      help='IP Address or FQDN of the host where the DB is running (default: %(default)s)',
                      default='localhost')
     
+    arg.add_argument('--test-implementations',
+                     dest='test_implementations',
+                     help='Used to test current implementations in the code...',
+                     action='store_true')
+    
     parsed_args = arg.parse_args()
 
     logging.debug(f'{parsed_args=}')

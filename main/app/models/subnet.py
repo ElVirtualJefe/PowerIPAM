@@ -6,7 +6,7 @@ from sqlalchemy import func,text
 from datetime import datetime
 from helpers.constants import BASE
 
-class subnetModel(BASE):
+class SubnetModel(BASE):
     """
     Subnet Model
     """
@@ -18,7 +18,7 @@ class subnetModel(BASE):
     name                = Column(String(48), nullable=False)
     displayName         = Column(String(128))
     description         = Column(String(200))
-    ipAddresses         = relationship('ipAddressModel', backref='ipAddresses', lazy=True)
+    ipAddresses         = relationship('IpAddressModel', backref='ipAddresses', lazy=True)
     masterSubnet_id     = Column(UUID(True), ForeignKey('subnets.id'), nullable=True)
     vlan_id             = Column(UUID(True), ForeignKey('vlans.id'), nullable=True)
     allowRequests       = Column(Boolean, server_default=exp.false(), nullable=False)
@@ -31,7 +31,7 @@ class subnetModel(BASE):
 
 
     def __repr__(self):
-        return f'''<
+        return f'''<---
 id: {self.id}
 name: {self.name}
 displayName: {self.displayName}
@@ -42,8 +42,12 @@ doScan: {self.doScan}
 dateLastScanned: {self.dateLastScanned}
 dateLastDiscovered: {self.dateLastDiscovered}
 dateCreated: {self.dateCreated}
->'''
-
+--->'''
 
     def __str__(self):
         return f"<Subnet Name: {self.name} - {self.id}>"
+
+    def __iter__(self):
+        for attr in dir(self):
+            if not attr.startswith('__'):
+                yield attr

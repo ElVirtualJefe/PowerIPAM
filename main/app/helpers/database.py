@@ -23,8 +23,8 @@ def create_db_connection(db_uri):
     
     :param db_uri: Description
     """
-
-    mod_logger.debug('Entering function %s', mod_name)
+    func_name = whoami(currentframe())
+    mod_logger.debug('Entering function %s', func_name)
 
     try:
         from sqlalchemy.orm import sessionmaker,scoped_session                                                                    
@@ -49,7 +49,7 @@ def create_db_connection(db_uri):
         mod_logger.critical('Critical Error setting up database connection.')
         raise  e
     finally:
-        mod_logger.debug('Leaving function %s', mod_name)
+        mod_logger.debug('Leaving function %s', func_name)
 
 
     

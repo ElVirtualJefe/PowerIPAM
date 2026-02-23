@@ -7,7 +7,7 @@ import uuid
 from datetime import datetime
 from helpers.constants import BASE
 
-class vLanModel(BASE):
+class VlanModel(BASE):
     """
     vLAN Model
     """
@@ -18,7 +18,7 @@ class vLanModel(BASE):
     name = Column(String(48))
     vlanNumber = Column(SmallInteger, nullable=False)
     description = Column(String(250))
-    subnets = relationship('subnetModel', backref='subnets', lazy=True)
+    subnets = relationship('SubnetModel', backref='subnets', lazy=True)
     dateLastEdited = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     dateCreated = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 

@@ -3,7 +3,7 @@ from sqlalchemy import Column,String
 from sqlalchemy import text
 from helpers.constants import BASE
 
-class addressStateModel(BASE):
+class AddressStateModel(BASE):
     """
     Address State Model
     """

@@ -24,7 +24,7 @@ class IpAddressModel(BASE):
     macAddress = Column(String(17))
     owner = Column(String(40))
     state_id = Column(UUID(as_uuid=True), 
-        ForeignKey('addressStates.id'), 
+        ForeignKey('ddressStates.id'), 
         nullable=False, 
         server_default=cast('5a3be258-876b-4fb3-9788-61acced67be1', UUID)
     )

@@ -4,7 +4,7 @@ from sqlalchemy import func,text
 from datetime import datetime
 from helpers.constants import BASE
 
-class settingsModel(BASE):
+class SettingsModel(BASE):
     """
     Settings Model
     """

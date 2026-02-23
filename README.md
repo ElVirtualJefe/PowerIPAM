@@ -2,6 +2,7 @@
 =============================
 
 ### To-Do:
+- Implement testing of failures and error handling
 - Figure out directory structure and stop using relative paths
 - Implement everything into classes instead of random functions
 - Implement config.ini parsing
