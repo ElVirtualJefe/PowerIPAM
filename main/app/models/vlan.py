@@ -5,7 +5,10 @@ from sqlalchemy import Column,String,DateTime,SmallInteger
 from sqlalchemy import func,text
 import uuid
 from datetime import datetime
-from helpers.constants import BASE
+if __name__ == 'app.models.vlan':
+    from app.helpers.constants import BASE
+else:
+    from helpers.constants import BASE
 
 class VlanModel(BASE):
     """

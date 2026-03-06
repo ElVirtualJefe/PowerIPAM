@@ -37,20 +37,22 @@ def create_db_connection(db_uri):
         mod_logger.debug(f'{engine.url=}')
 
         SESSION = scoped_session(sessionmaker(bind=engine))
+        session = SESSION()
         mod_logger.info('Successfully created DB Connection...')
 
         db = BASE.metadata
         db.create_all(engine)
         mod_logger.debug('Created all tables in %s', DB_NAME)
 
-        return SESSION()
+        from implementations import addressState
+        address_state = addressState.AddressStateImplementation(session)
+
+        return session
 
     except Exception as e:
         mod_logger.critical('Critical Error setting up database connection.')
         raise  e
     finally:
         mod_logger.debug('Leaving function %s', func_name)
-
-
     
 mod_logger.debug('Leaving module %s', mod_name)

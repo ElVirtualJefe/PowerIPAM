@@ -10,5 +10,7 @@
   - Implement basic File Logging
 - Implement gRPC Service for IP Addresses
 
+- Eventually implement ability to add and remove custom Address States
+
 --------------------------
 ### Change Log:

@@ -4,7 +4,10 @@ from sqlalchemy.sql import expression as exp
 from sqlalchemy import Column,String,DateTime,ForeignKey,Boolean
 from sqlalchemy import func,text
 from datetime import datetime
-from helpers.constants import BASE
+if __name__ == 'app.models.subnet':
+    from app.helpers.constants import BASE
+else:
+    from helpers.constants import BASE
 
 class SubnetModel(BASE):
     """
@@ -18,7 +21,7 @@ class SubnetModel(BASE):
     name                = Column(String(48), nullable=False)
     displayName         = Column(String(128))
     description         = Column(String(200))
-    ipAddresses         = relationship('IpAddressModel', backref='ipAddresses', lazy=True)
+    ipAddresses         = relationship('IpAddressModel', backref='ipAddresses', lazy=True, cascade='all, delete')
     masterSubnet_id     = Column(UUID(True), ForeignKey('subnets.id'), nullable=True)
     vlan_id             = Column(UUID(True), ForeignKey('vlans.id'), nullable=True)
     allowRequests       = Column(Boolean, server_default=exp.false(), nullable=False)

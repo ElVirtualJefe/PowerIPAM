@@ -1,7 +1,10 @@
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy import Column,String
 from sqlalchemy import text
-from helpers.constants import BASE
+if __name__ == 'app.models.addressState':
+    from app.helpers.constants import BASE
+else:
+    from helpers.constants import BASE
 
 class AddressStateModel(BASE):
     """
@@ -11,7 +14,7 @@ class AddressStateModel(BASE):
     __tablename__ = "addressStates"
 
     id = Column(UUID(True), primary_key=True, server_default=text('gen_random_uuid()'))
-    state = Column(String(48))
+    state = Column(String(48), unique=True, nullable=False)
 
     def __repr__(self):
         return f"<State: {self.state}>"

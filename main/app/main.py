@@ -5,22 +5,9 @@ Purpose: This is the main service for the PowerIPAM Application
 
 """
 
-import logging
-from pathlib import Path
-from helpers.constants import DEFAULT_LOG_FORMAT,DEFAULT_LOG_DIR,DEFAULT_DEBUG_LOG_LOCATION
-#from helpers.logger import setup_basic_logging
-
-# START ---  Build basic logging to catch any logs that are not from a constructed logger.
-if not Path.is_dir(DEFAULT_LOG_DIR):
-    Path(DEFAULT_LOG_DIR).mkdir(644,parents=True)
-
-#logging.basicConfig(level=logging.DEBUG,
-#                    format=DEFAULT_LOG_FORMAT,
-#                    filename=DEFAULT_DEBUG_LOG_LOCATION)
-# END ---  Basic Logging
-
 from helpers.logger import configure_logging
 configure_logging()
+import logging
 logging.debug('----------===== Start of new Program Execution =====----------')
 
 from helpers.common import whoami

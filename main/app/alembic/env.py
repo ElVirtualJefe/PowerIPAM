@@ -10,6 +10,7 @@ from alembic import context
 
 from app.helpers.config import DB_URI
 from app.helpers.constants import BASE
+import app.models
 
 print(f'{DB_URI=}')
 

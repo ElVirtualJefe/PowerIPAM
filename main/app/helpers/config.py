@@ -92,6 +92,7 @@ try:
     LOG_DIR = conf.get('logging','log_dir',fallback='./logs')
 
     LOG_LOCATION = f'{LOG_DIR}/{LOG_FILE}'
+
 finally:
     mod_logger.debug('Leaving module %s', current_frame_name)
 

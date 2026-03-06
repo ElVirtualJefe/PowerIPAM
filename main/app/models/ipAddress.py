@@ -4,7 +4,10 @@ from datetime import datetime
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy import Column,String,ForeignKey,Boolean,DateTime
 from sqlalchemy import func,text,cast
-from helpers.constants import BASE
+if __name__ == 'app.models.ipAddress':
+    from app.helpers.constants import BASE
+else:
+    from helpers.constants import BASE
 
 class IpAddressModel(BASE):
     """
@@ -24,9 +27,8 @@ class IpAddressModel(BASE):
     macAddress = Column(String(17))
     owner = Column(String(40))
     state_id = Column(UUID(as_uuid=True), 
-        ForeignKey('ddressStates.id'), 
-        nullable=False, 
-        server_default=cast('5a3be258-876b-4fb3-9788-61acced67be1', UUID)
+        ForeignKey('addressStates.id'), 
+        nullable=False
     )
     dateLastSeen = Column(DateTime(timezone=True))
     dateLastEdited = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
@@ -36,10 +38,12 @@ class IpAddressModel(BASE):
         return f'''<
 id: {self.id}
 ipAddress: {self.ipAddress}
+subnet_id: {self.subnet_id}
 hostname: {self.hostname}
 macAddress: {self.macAddress}
 description: {self.description}
 owner: {self.owner}
+state_id: {self.state_id}
 is_gateway: {self.is_gateway}
 is_available: {self.is_available}
 dateLastSeen: {self.dateLastSeen}
@@ -48,4 +52,9 @@ dateCreated: {self.dateCreated}
 
 
     def __str__(self):
-        return f"<id {self.id} - IP {self.ipAddress}>"
+        return f"<id {self.id} - IP {self.ipAddress} - is_available>"
+
+    def __iter__(self):
+        for attr in dir(self):
+            if not attr.startswith('__'):
+                yield attr

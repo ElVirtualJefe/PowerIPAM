@@ -12,14 +12,19 @@ mod_logger.debug('Entering module %s', current_frame_name)
 
 class SubnetImplementation():
     session = None
+    common_impl = None
     re_pattern_subnet = r'^(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)/(?:2[0-4]|[01]?[0-9])$'
 
     def __init__(self,session=None):
-        if session == None:
+        if session is None:
             mod_logger.critical('No current DB Session Connection...')
             raise 'Missing SESSION connection to DB...'
         
         self.session = session
+
+        from implementations import common_db
+        self.common_impl = common_db.DbImplementation(session)
+
         return
     
     def _addSubnet(self,request) -> SubnetModel:
@@ -72,7 +77,7 @@ class SubnetImplementation():
 
         return None
 
-    def _deleteSubnet(self,id) -> SubnetModel:
+    def _deleteSubnet(self,id):
         current_func_name = whoami(logging.currentframe())
         mod_logger.debug('Entering function %s', current_func_name)
 
@@ -102,15 +107,18 @@ class SubnetImplementation():
         mod_logger.debug('Entering function %s', current_func_name)
 
         try:
-            if request.name == None or request.name == '':
+            print(f'{request=}')
+            print(f'{request.__class__=}')
+            print(f'{request.__class__.__name__=}')
+            if request.name is None or request.name == '':
                 raise err.InvalidParameterValue('Value missing for Subnet/Mask')
             mod_logger.debug('Subnet name input is present - %s' % request.name)
 
             #print(re.match(self.re_pattern_subnet,request.name))
-            if re.match(self.re_pattern_subnet,request.name) == None:
+            if re.match(self.re_pattern_subnet,request.name) is None:
                 raise err.InvalidParameterValue('Subnet/Mask combination is not valid.')
         
-            return self._addSubnet(request)
+            return self.common_impl.ADD_RECORD(request,SubnetModel)
 
         except Exception as e:
             mod_logger.error('Something went wrong...')
@@ -135,5 +143,4 @@ class SubnetImplementation():
         finally:
             mod_logger.debug('Leaving function %s', current_func_name)
 
-
-
+mod_logger.debug('Leaving module %s', current_frame_name)
