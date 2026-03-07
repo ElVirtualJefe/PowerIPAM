@@ -20,7 +20,7 @@ class AddressStateImplementation():
     DEFAULT_STATES = ('OFFLINE','ONLINE','RESERVED','UNUSED')
 
     def __init__(self,session):
-        if session == None:
+        if session is None:
             mod_logger.critical('No current DB Session Connection...')
             raise 'Missing SESSION connection to DB...'
         
@@ -31,7 +31,7 @@ class AddressStateImplementation():
             mod_logger.warning('Will now attempt to re-create them...')
             for state in self.DEFAULT_STATES:
                 a_s = self._getIpAddressStateByName(state=state)
-                if a_s == None or len(a_s) == 0:
+                if a_s is None or len(a_s) == 0:
                     new_a_s = AddressStateModel(state=state.upper())
                     self._addAddressState(new_a_s)
         
@@ -80,10 +80,12 @@ class AddressStateImplementation():
 
         try:
             mod_logger.debug('Attempting to get record with state = %s' % state)
-            address_state = self.session.query(AddressStateModel).filter_by(state=state).first()
+            address_state = self.session.query(AddressStateModel).filter_by(state=state).all()
             print(address_state)
             mod_logger.debug(f'{address_state=}')
-            return address_state if address_state == None else address_state[0]
+            return address_state if address_state is None else address_state[0]
+        except Exception as e:
+            raise e
         finally:
             mod_logger.debug('Leaving function %s', current_func_name)
 

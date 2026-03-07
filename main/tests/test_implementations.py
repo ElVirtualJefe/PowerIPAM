@@ -50,16 +50,25 @@ class PowerIPAMtesting():
         else:
             testing_logger.warning('Something went wrong with test of inserting new ipAddress...')
 
+        testing_logger.info('Testing invalid ipAddress ip input...')
+        failed_ip = self._test_create_new_ip_address(name=test_invalid_ip_address,subnet_id=new_sn.id)
+        if failed_ip:
+            testing_logger.info('Successfully handled invalid ipAddress ip input...')
+
+        print('Sleeping for 30 seconds...')
+        from time import sleep
+        sleep(30)
 
         # Remove previously created tests
 
-        if self.ip_impl.removeIpAddress(new_ip.id):
+        if self.ip_impl.removeIpAddress(new_ip):
             testing_logger.info('Successfully tested deleting new ipAddress...')
 
         if self.sn_impl.removeSubnet(new_sn.id):
             testing_logger.info('Successfully tested deleting new subnet...')
         else:
             testing_logger.warning('Something went wrong with test of deleting new subnet...')
+
 
     def _test_create_new_subnet(self,name):
         try:
@@ -73,6 +82,7 @@ class PowerIPAMtesting():
         except Exception as e:
             return True
 
+
     def _test_create_new_ip_address(self,name,subnet_id):
         try:
             from models.ipAddress import IpAddressModel
@@ -83,6 +93,6 @@ class PowerIPAMtesting():
             return new_ip
             #print(new_sn_id)
         except Exception as e:
-            raise e
+            #raise e
             return True
 

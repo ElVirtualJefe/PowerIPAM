@@ -22,7 +22,20 @@ class DbImplementation():
             raise err.NullValueNotAllowed('Missing SESSION connection to DB...')
         
         self.session = session
-        return
+
+
+    def _queryDatabase(self,record_class,**kwargs):
+        current_func_name = whoami(logging.currentframe())
+        mod_logger.debug('Entering function %s', current_func_name)
+
+        try:
+            return self.session.query(record_class).filter_by(**kwargs).all()
+        except Exception as e:
+            mod_logger.error('Could not query database - %r' % e)
+            return False
+        finally:
+            mod_logger.debug('Leaving function %s', current_func_name)
+
     
     def _deleteRecord(self,record):
         current_func_name = whoami(logging.currentframe())
@@ -30,7 +43,7 @@ class DbImplementation():
 
         try:
             mod_logger.debug('Deleting record: %s' % record.id)
-            #print("%r" % request)
+            print("%r" % record)
             #newSubnet = SubnetModel(**columns)
             #sn = self._getSubnetById(id)
             self.session.delete(record)
@@ -38,7 +51,6 @@ class DbImplementation():
 
             mod_logger.info('Successfully deleted row(s)')
 
-            mod_logger.debug(f'Leaving function {__name__}.{current_func_name}')
             return True
 
         except Exception:
@@ -47,12 +59,13 @@ class DbImplementation():
         finally:
             mod_logger.debug('Leaving function %s', current_func_name)
 
-    def _addRecord(self,record,model):
+
+    def _addRecord(self,record):
         current_func_name = whoami(logging.currentframe())
         mod_logger.debug('Entering function %s', current_func_name)
 
         try:
-            mod_logger.debug('Inserting record: %s' % record.name)
+            mod_logger.debug('Inserting record: %s' % record)
 
             self.session.add(record)
             self.session.flush()
@@ -60,12 +73,12 @@ class DbImplementation():
             self.session.commit()
             mod_logger.info('Successfully inserted row: %s' % record)
 
-            newRecord = self.session.query(record.__class__).filter_by(id=new_id).all()
-            print(f'{newRecord=}')
+            newRecord = self.GET_RECORD(record.__class__,id=new_id)
+            #print(f'{newRecord=}')
             if len(newRecord) > 1:
                 raise err.TooManyRows('More than one row contains the same unique ID...')
             elif len(newRecord) <= 0:
-                raise err.NoDataFound('No rows found matching id=%s' % id)
+                raise err.NoDataFound('No rows found matching id=%s' % new_id)
 
             return newRecord[0]
         except Exception as e:
@@ -77,5 +90,6 @@ class DbImplementation():
 
     DELETE_RECORD = _deleteRecord
     ADD_RECORD = _addRecord
+    GET_RECORD = _queryDatabase
 
 mod_logger.debug('Leaving module %s', current_frame_name)

@@ -14,7 +14,7 @@ class SettingsImplementation():
     session = None
 
     def __init__(self,session=None):
-        if session == None:
+        if session is None:
             mod_logger.critical('No current DB Session Connection...')
             raise 'Missing SESSION connection to DB...'
         

@@ -26,8 +26,8 @@ class IpAddressModel(BASE):
     hostname = Column(String(64))
     macAddress = Column(String(17))
     owner = Column(String(40))
-    state_id = Column(UUID(as_uuid=True), 
-        ForeignKey('addressStates.id'), 
+    state_id = Column(UUID(as_uuid=True),
+        ForeignKey('addressStates.id'),
         nullable=False
     )
     dateLastSeen = Column(DateTime(timezone=True))
@@ -52,7 +52,7 @@ dateCreated: {self.dateCreated}
 
 
     def __str__(self):
-        return f"<id {self.id} - IP {self.ipAddress} - is_available>"
+        return f"<id: {self.id} - IP: {self.ipAddress} - is_available: {self.is_available}>"
 
     def __iter__(self):
         for attr in dir(self):

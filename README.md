@@ -12,5 +12,9 @@
 
 - Eventually implement ability to add and remove custom Address States
 
+
+---  Future wants
+- Implement ability to add/remove multiple rows in a single commit
+
 --------------------------
 ### Change Log:
