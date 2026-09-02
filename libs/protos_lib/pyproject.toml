@@ -1,0 +1,17 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "protos-lib"
+version = "0.1.0"
+description = "Shared protocol buffer schemas and generated Python stubs"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "protobuf>=5.26.1",
+    "grpcio>=1.76.1",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src"]

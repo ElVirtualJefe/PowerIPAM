@@ -3,11 +3,11 @@
 
 ### To-Do:
 - Implement testing of failures and error handling
-- Figure out directory structure and stop using relative paths
+- ~~Figure out directory structure and stop using relative paths~~
 - Implement everything into classes instead of random functions
 - Implement config.ini parsing
-- Implement logging setup functions
-  - Implement basic File Logging
+- ~~Implement logging setup functions~~
+  - ~~Implement basic File Logging~~
 - Implement gRPC Service for IP Addresses
 
 - Eventually implement ability to add and remove custom Address States
@@ -17,4 +17,10 @@
 - Implement ability to add/remove multiple rows in a single commit
 
 --------------------------
+## Release Notes (v0.1.1):
+
+### New Features:
+- Basic Web UI
+
 ### Change Log:
+- Restructured to utilize shared libraries for logging, database connections and protobufs.

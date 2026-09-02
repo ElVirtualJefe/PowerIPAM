@@ -1,0 +1,47 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "PowerIPAM-microservices-workspace"
+version = "0.1.0"
+description = "Monorepo workspace for PowerIPAM microservices"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [] # Leave empty; Dependencies are managed by individual services.
+
+[tool.hatch.envs.default]
+installer = "pip" # Uses standard pip under the hood
+dependencies = [
+  "pytest",
+  "black",
+  # Install the shared packages and services in editable mode locally
+  "-e ./libs/logging_lib",
+  "-e ./libs/database_lib",
+  "-e ./apps/scan_agent",
+  "-e ./apps/web_ui",
+]
+
+# Optional: Add script shortcuts you can run from the root directory
+[tool.hatch.envs.default.scripts]
+test = "pytest"
+run-web-ui = "python apps/web_ui/src/index.py"
+
+[tool.pylint.main]
+init-hook = """
+import sys
+from pathlib import Path
+root = Path(__file__).parent
+sys.path.extend([
+  str(root / "libs" / "database_lib" / "src"),
+  str(root / "libs" / "logging_lib" / "src"),
+  str(root / "apps" / "scan_agent" / "src" ),
+  str(root / "apps" / "web_ui" / "src" )
+])
+"""
+
+[tool.pylint.messages_control]
+disable = [
+  "missing-module-docstring",
+  "missing-function-docstring"
+]

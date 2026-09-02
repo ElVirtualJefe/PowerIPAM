@@ -1,6 +1,6 @@
+configparser>=7.2.0;
 grpcio-tools>=1.76.0;
 psycopg2>=2.9.11;
 psycopg2-binary>=2.9.11
 sqlalchemy>=2.0.46;
-configparser>=7.2.0;
 alembic>=1.18.4

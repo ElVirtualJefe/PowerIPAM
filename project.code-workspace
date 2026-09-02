@@ -1,0 +1,52 @@
+{
+    "folders": [
+        {
+            "name": "⚓ ROOT",
+            "path": "."
+        },
+        {
+            "name": "🚀 Scan Agent Service",
+            "path": "apps/scan_agent"
+        },
+        {
+            "name": "🚀 Web UI Service",
+            "path": "apps/web_ui"
+        },
+        {
+            "name": "📦 Database Library",
+            "path": "libs/database_lib"
+        },
+        {
+            "name": "📦 Logging Library",
+            "path": "libs/logging_lib"
+        },
+        {
+            "name": "📦 Models Library",
+            "path": "libs/models_lib"
+        },
+        {
+            "name": "📦 Protobuf Library",
+            "path": "libs/protos_lib"
+        },
+        {
+            "name": "🗒️ Main Logs",
+            "path": "logs"
+        }
+    ],
+    "settings": {
+        "python.analysis.extraPaths": [
+            "./libs/logging_lib/src",
+            "./libs/database_lib/src",
+            "./libs/models_lib/src",
+            "./libs/protos_lib/src"
+        ],
+        "protobuf.includes": [
+            "${workspaceFolder}/libs/protos_lib/proto"
+        ],
+        "protobuf.protoc.path": "protoc",
+        "protobuf.protoc.options": [
+            "--proto_path=${workspaceFolder}/libs/protos_lib/proto",
+            "--python_out=${workspaceFolder}/libs/protos_lib/src"
+        ]
+    }
+}
