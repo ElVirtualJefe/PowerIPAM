@@ -1,7 +1,7 @@
 #from . import logger
 #from .helpers import logging_classes, logging_constants
 
-from .context import clear_context, get_context, set_context
+from .context import clear_context, get_context, set_context, remove_context, whoami
 from .logger import configure_logging, get_logger, log_exception
 
 __all__ = [
@@ -11,4 +11,6 @@ __all__ = [
     "get_logger",
     "log_exception",
     "set_context",
+    "remove_context",
+    "whoami",
 ]

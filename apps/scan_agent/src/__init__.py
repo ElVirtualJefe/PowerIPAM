@@ -12,21 +12,3 @@ log_manager = APP_LOG_MANAGER(
     log_location=LOG_LOCATION)
  """
 
-import logging
-from logging_lib import configure_logging, set_context
-
-configure_logging(
-    service_name="scan_agent",
-    environment="development",
-    log_format="syslog",
-    level="DEBUG"
-)
-
-logger = logging.getLogger(__name__)
-
-set_context(
-    request_id = "req-123",
-    order_id="order-456"
-)
-
-logger.info("Order processed")

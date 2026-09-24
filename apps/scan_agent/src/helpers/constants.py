@@ -6,6 +6,9 @@ from sqlalchemy.ext.declarative import declarative_base
 APPLICATION_NAME = "PowerIPAM Scan Agent"
 APPLICATION_VERSION = "v0.0.1-alpha"
 
+DELIM = "\\" if "\\" in __file__ else "/"
+LOGGER_NAME = 'scan_agent'
+
 # Logging Constants
 DEFAULT_LOG_FORMAT = '%(asctime)s.%(msecs)03dZ %(name)s %(processName)s[%(process)d]: %(levelname)s >>> %(message)s'
 DEFAULT_LOG_DATE_FORMAT = '%Y-%m-%dT%H:%M:%S'  #2022-09-27 18:00:00.000

@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from pathlib import Path
 import logging
-from logging.config import dictConfig
+#from logging.config import dictConfig
 import sys
 from typing import Literal, Any
 from .helpers import logging_constants as con
@@ -124,6 +124,11 @@ def configure_logging(
     root_logger.setLevel(level)
     root_logger.handlers.clear()
     root_logger.addHandler(handler)
+
+    if environment == 'development':
+        root_logger.debug("service_name=%s", service_name)
+        root_logger.debug("level=%s", level)
+        root_logger.debug("log_format=%s", log_format)
 
     # Optional: reduce noisy dependency logs.
     logging.getLogger("httpx").setLevel(logging.WARNING)

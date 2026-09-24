@@ -1,13 +1,17 @@
-from .. import log_manager, APPLICATION_NAME
-from logging import getLogger, currentframe
+#from .. import log_manager, APPLICATION_NAME
+from logging import currentframe
+from helpers import constants as c
+from logging_lib import configure_logging, clear_context, set_context, get_logger, whoami
 
 #print(f"{APPLICATION_NAME=}")
 #print(f"{currentframe()=}")
 #print(f"{log_manager.whoami(currentframe())=}")
 #print(f"{log_manager.whoami(currentframe()).split(".")[0]=}")
-app_logger = getLogger(f'{APPLICATION_NAME}').getChild(f'{log_manager.whoami(currentframe())}')
+#clear_context()
+#set_context(file=__file__.rsplit(c.DELIM, maxsplit=1)[-1], module=__name__)
+app_logger = get_logger(f'{c.LOGGER_NAME}').getChild(f'{whoami(currentframe())}')
 #print(f"{app_logger.name=}")
-app_logger.debug('Initializing NMAP Class...')
+app_logger.info('Initializing NMAP Class...')
 
 import nmap
 import json
