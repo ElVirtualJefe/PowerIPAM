@@ -14,17 +14,23 @@ log_manager.configure_logging()
 from logging import currentframe
 #from logging_lib import set_context, get_logger
 from logging_lib import configure_logging, set_context, remove_context, get_logger, whoami
-from helpers import constants as c
+
+if __package__:
+    from .config import get_settings
+else:
+    from config import get_settings
+
+settings = get_settings()
 
 configure_logging(
-    service_name=f'[{c.APPLICATION_NAME} {c.APPLICATION_VERSION}]',
-    environment="development",
+    service_name=f'[{settings.service_name} {settings.service_ver}',
+    environment=settings.environment,
     log_format="syslog",
-    level="DEBUG",
-    version=c.APPLICATION_VERSION
+    level=settings.log_level,
+    version=settings.app_ver
 )
 
-app_logger = get_logger(c.LOGGER_NAME)
+app_logger = get_logger(settings.service_name)
 app_logger.debug("---+++  Initialized Logger for %s  +++---", (__name__))
 #app_logger.info('test log...')
 
@@ -43,15 +49,19 @@ def handler(args=None) -> None:
     """
 
     #set_context(function=whoami(currentframe()))
-    func_logger = get_logger(c.LOGGER_NAME).getChild(f'{whoami(currentframe())}')
+    func_logger = get_logger(settings.service_name).getChild(f'{whoami(currentframe())}')
     func_logger.info('Starting PowerIPAM Scan Agent Application...')
 
+    if __package__:
+        from .implementations.nmap import AsyncSubnetScanner
+    else:
+        from implementations.nmap import AsyncSubnetScanner
+
     import nmap
-    from implementations.nmap import AsyncSubnetScanner
 
     scanner = nmap.PortScanner()
     aScan = AsyncSubnetScanner('10.160.0.0/24')
-    results = scanner.scan(hosts='10.160.0.0/24',arguments=c.NMAP_ARGUMENTS["pingScan"])
+    results = scanner.scan(hosts='10.160.0.0/24', arguments=settings.NMAP_ARGUMENTS["pingScan"])
     print(f'{results=}')
 
     #remove_context(function=None)
