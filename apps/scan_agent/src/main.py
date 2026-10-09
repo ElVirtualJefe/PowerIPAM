@@ -23,7 +23,7 @@ else:
 settings = get_settings()
 
 configure_logging(
-    service_name=f'[{settings.service_name} {settings.service_ver}',
+    service_name=f'[{settings.service_name} {settings.service_ver}]',
     environment=settings.environment,
     log_format="syslog",
     level=settings.log_level,

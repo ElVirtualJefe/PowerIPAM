@@ -23,7 +23,7 @@ class Settings(BaseSettings):
     service_ver: ClassVar[str] = "0.1.0.0000"
 
     # Application Constants
-    NMAP_ARGUMENTS: dict = {
+    NMAP_ARGUMENTS: ClassVar[dict] = {
         "pingScan": "-R -sP -PE -T4",
         "baseScan": "-T4 -PS21,22,80,443,3389 --open"
     }
