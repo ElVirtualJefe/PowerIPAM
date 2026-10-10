@@ -5,6 +5,10 @@
             "path": "."
         },
         {
+            "name": "🚀 Core Data Service",
+            "path": "apps/core_service"
+        },
+        {
             "name": "🚀 Scan Agent Service",
             "path": "apps/scan_agent"
         },
@@ -21,10 +25,6 @@
             "path": "libs/logging_lib"
         },
         {
-            "name": "📦 Models Library",
-            "path": "libs/models_lib"
-        },
-        {
             "name": "📦 Protobuf Library",
             "path": "libs/protos_lib"
         },
@@ -37,7 +37,6 @@
         "python.analysis.extraPaths": [
             "./libs/logging_lib/src",
             "./libs/database_lib/src",
-            "./libs/models_lib/src",
             "./libs/protos_lib/src"
         ],
         "protobuf.includes": [

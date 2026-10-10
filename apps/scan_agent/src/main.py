@@ -62,7 +62,12 @@ def handler(args=None) -> None:
     scanner = nmap.PortScanner()
     aScan = AsyncSubnetScanner('10.160.0.0/24')
     results = scanner.scan(hosts='10.160.0.0/24', arguments=settings.NMAP_ARGUMENTS["pingScan"])
-    print(f'{results=}')
+    #print(f'{results=}')
+    print(f'{results.get("scan",None)=}')
+
+    for host in results.get("scan", {}):
+        print(f"Host: {host}")
+        print(results["scan"].get(host,{}))
 
     #remove_context(function=None)
     return
