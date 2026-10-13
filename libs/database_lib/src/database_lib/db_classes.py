@@ -4,18 +4,26 @@ from . import app_logger
 from collections.abc import Generator
 from uuid import UUID, uuid4
 from datetime import UTC, datetime
-from sqlalchemy import DateTime, func, create_engine, text, FetchedValue, Uuid
+from sqlalchemy import DateTime, func, create_engine, text, FetchedValue, Uuid, MetaData
 from sqlalchemy.engine import Engine
 #from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, sessionmaker, scoped_session
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, sessionmaker, Session
 from sqlalchemy.exc import OperationalError, IntegrityError
 from contextlib import contextmanager
 from . import exceptions as exc
 
 
+NAMING_CONVENTION = {
+    "ix": "ix_%(column_0_label)s",
+    "uq": "uq_%(table_name)s_%(column_0_name)s",
+    "ck": "ck_%(table_name)s_%(constraint_name)s",
+    "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
+    "pk": "pk_%(table_name)s",
+}
+
 class Base(DeclarativeBase):
     """Common Base to inherit for applications"""
-    pass
+    metadata = MetaData(naming_convention=NAMING_CONVENTION)
 
 class UUIDPrimaryKeyMixin:
     """Mixin to automatically apply UUID primary keys"""
@@ -76,10 +84,10 @@ class DatabaseManager:
             expire_on_commit=False
         )
 
-        self.Session = scoped_session(self.session_factory)
+        #self.Session = scoped_session(self.session_factory)
 
     @contextmanager
-    def session_scope(self) -> Generator[scoped_session, None, None]:
+    def session_scope(self) -> Generator[Session, None, None]:
         """
         Provides a context manager for database sessions, handling commits, rollbacks, and exceptions.
         Yields a database session and ensures proper commit, rollback, and cleanup.
@@ -88,24 +96,24 @@ class DatabaseManager:
             Generator: A database session within the context manager.
         """
 
-        session = self.Session()
+        session = self.session_factory()
         try:
             yield session
             session.commit()
         except OperationalError as e:
             session.rollback()
             app_logger.error(f"Database connectivity issue: {str(e)}")
-            raise exc.DatabaseConnectionError("Could not connect to the database infrastructure.")
+            raise exc.DatabaseConnectionError("Could not connect to the database infrastructure.") from e
         except IntegrityError as e:
             session.rollback()
-            app_logger.warn(f"Database integrity violation: {str(e)}")
-            raise exc.DuplicateEntryError("The data violates unique validation rules.")
+            app_logger.warning(f"Database integrity violation: {str(e)}")
+            raise exc.DuplicateEntryError("The data violates unique validation rules.") from e
         except Exception as e:
             session.rollback()
             app_logger.error(f"Unexpected database exception: {str(e)}")
             raise exc.DatabaseError(f"Database operation failed: {str(e)}")
         finally:
-            self.Session.remove()
+            session.close()
 
     def check_health(self) -> bool:
         """Executes a low-overhead ping to verify database liveness."""
