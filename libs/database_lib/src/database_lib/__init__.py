@@ -44,11 +44,13 @@ app_logger.debug('Starting Database Manager Library Process...')
 
 from .config import DatabaseSettings
 from .db_classes import Base, DatabaseManager, TimestampMixin, UUIDPrimaryKeyMixin
+from .alembic import run_migrations
 
 __all__ = [
     "DatabaseSettings",
     "Base",
     "DatabaseManager",
     "TimestampMixin",
-    "UUIDPrimaryKeyMixin"
+    "UUIDPrimaryKeyMixin",
+    "run_migrations"
 ]

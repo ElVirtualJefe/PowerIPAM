@@ -26,6 +26,11 @@ class Settings(BaseSettings):
     environment: str = "development"
     log_level: str = "DEBUG"
 
+    # Database settings
+    database_url: str | None = None
+    database_username: str | None = None
+    database_password: str | None = None
+
 
 @lru_cache
 def get_settings() -> Settings:
