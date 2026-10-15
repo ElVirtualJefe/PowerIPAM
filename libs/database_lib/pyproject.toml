@@ -14,7 +14,7 @@ license = { text = "MIT" }
 classifiers = [
     "Programming Language :: Python :: 3",
     "Operating System :: OS Independent",
-    "Topic :: System :: Database"
+    "Topic :: Database"
 ]
 requires-python = ">=3.10"
 debendencies = [

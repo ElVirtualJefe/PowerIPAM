@@ -37,14 +37,14 @@ class UUIDPrimaryKeyMixin:
 class TimestampMixin:
     """Mixin to inject standard creation and modification tracking"""
     
-    dateCreated: Mapped[datetime] = mapped_column(
+    date_created: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
         default=lambda: datetime.now(UTC),
         server_default=func.now()
     )
 
-    dateLastEdited: Mapped[datetime] = mapped_column(
+    date_last_edited: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
         default=lambda: datetime.now(UTC),
