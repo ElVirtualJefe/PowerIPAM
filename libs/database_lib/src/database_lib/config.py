@@ -18,7 +18,7 @@ class DatabaseSettings(BaseSettings):
         extra = "forbid"
     )
 
-    lib_name: ClassVar[str] = "databse-lib"
+    lib_name: ClassVar[str] = "database-lib"
     lib_ver: ClassVar[str] = "0.1.0.0000"
 
     # Environment and logging settings
