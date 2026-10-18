@@ -69,7 +69,7 @@ class DatabaseManager:
         self.config = config
 
         self.engine: Engine = create_engine(
-            config.url,
+            config.connection_url,
             pool_size=config.pool_size,
             max_overflow=config.max_overflow,
             pool_timeout=config.pool_timeout,
@@ -111,7 +111,7 @@ class DatabaseManager:
         except Exception as e:
             session.rollback()
             app_logger.error(f"Unexpected database exception: {str(e)}")
-            raise exc.DatabaseError(f"Database operation failed: {str(e)}")
+            raise exc.DatabaseError(f"Database operation failed: {str(e)}") from e
         finally:
             session.close()
 

@@ -12,7 +12,7 @@ from sqlalchemy.schema import MetaData
 
 
 def run_migrations(
-        target_metadata=MetaData,
+        target_metadata: MetaData,
         *,
         database_url: str | None = None
 ) -> None:
@@ -22,7 +22,7 @@ def run_migrations(
 
     if database_url is not None:
         # Escape percent interpolation
-        config.set_main_option("sqlalchey.url", database_url.replace("%", "%%"))
+        config.set_main_option("sqlalchemy.url", database_url.replace("%", "%%"))
 
     if context.is_offline_mode():
         _run_offline(target_metadata)
@@ -75,9 +75,6 @@ def _run_with_connection(
         target_metadata: MetaData
 ) -> None:
     """Run migrations with the given connection and target metadata."""
-
-    if not has_pending_migrations(connection):
-        return
 
     context.configure(
         connection=connection,
