@@ -2,10 +2,11 @@ from __future__ import annotations
 
 import logging
 from contextvars import ContextVar
+from typing import Optional
 import uuid
 
 # Optional trace ID contextvar that applications can set per-request.
-trace_id_var: ContextVar[str] = ContextVar("trace_id", default="")
+trace_id_var: ContextVar[Optional[str]] = ContextVar("trace_id", default=None)
 
 class TraceMicroserviceFilter(logging.Filter):
     """
@@ -15,6 +16,10 @@ class TraceMicroserviceFilter(logging.Filter):
     """
 
     def filter(self, record: logging.LogRecord) -> bool:
+        trace = trace_id_var.get()
 
-        record.trace_id = trace_id_var.get() or str(uuid.uuid4())
+        if trace:
+            record.trace_id = trace
+        else:
+            record.trace_id = getattr(record, "trace_id", None) or str(uuid.uuid4())
         return True

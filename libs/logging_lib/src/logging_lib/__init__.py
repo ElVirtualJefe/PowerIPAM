@@ -4,6 +4,9 @@
 from .context import clear_context, get_context, set_context, remove_context, whoami
 from .logger import configure_logging, get_logger, log_exception
 
+import logging
+logging.getlogger(__name__).addHandler(logging.NullHandler())
+
 __all__ = [
     "clear_context",
     "configure_logging",

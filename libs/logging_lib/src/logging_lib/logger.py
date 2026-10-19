@@ -8,13 +8,11 @@ application entry point when you want to apply a concrete logging policy.
 
 from __future__ import annotations
 
-from pathlib import Path
 import logging
 #from logging.config import dictConfig
 import sys
 from typing import Literal, Any
 from .helpers import logging_constants as con
-from .helpers import logging_classes as classes
 
 from .formatters import (
     ConsoleFormatter,
@@ -60,9 +58,6 @@ DEFAULT_LOGGING_CONFIG = {
         }
     }
 }
-
-
-APP_LOG_MANAGER = classes.PowerIpamLoggingManager
 
 
 LogFormat = Literal["console", "json", "syslog"]
@@ -148,7 +143,7 @@ def configure_logging(
 
     if log_format is None:
         log_format = (
-            "josn"
+            "json"
             if environment.lower() in {"production", "staging"}
             else "console"
         )
@@ -184,7 +179,7 @@ def get_structured_logger(
     name: str,
     *,
     service_name: str,
-    environent: str = "development",
+    environment: str = "development",
     version: str | None = None,
     level: int | str = logging.INFO,
     log_format: LogFormat | None = None
@@ -197,10 +192,10 @@ def get_structured_logger(
     """
     configure_logging(
         service_name=service_name,
-        environment=environent,
+        environment=environment,
         version=version,
         level=level,
-        log_format=log_format
+        log_format=log_format,
         logger_name=name,
         override_root=False
     )
