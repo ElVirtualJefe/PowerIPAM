@@ -1,5 +1,9 @@
 """
-Docstring for main.app.helpers.logger
+Shared logging configuration helpers.
+
+Important: this module is intentionally side-effect free. Libraries must not
+configure global logging at import time. Call configure_logging() from the
+application entry point when you want to apply a concrete logging policy.
 """
 
 from __future__ import annotations
@@ -57,11 +61,6 @@ DEFAULT_LOGGING_CONFIG = {
     }
 }
 
-if not Path.is_dir(con.DEFAULT_LOG_DIR):
-    Path(con.DEFAULT_LOG_DIR).mkdir(644,parents=True)
-#dictConfig(DEFAULT_LOGGING_CONFIG)
-logging.debug('----------===== Configured default root logger =====----------')
-
 
 APP_LOG_MANAGER = classes.PowerIpamLoggingManager
 
@@ -69,19 +68,18 @@ APP_LOG_MANAGER = classes.PowerIpamLoggingManager
 LogFormat = Literal["console", "json", "syslog"]
 
 
-def configure_logging(
-    *,
-    service_name: str,
-    environment: str = "development",
-    version: str | None = None,
-    level: int | str = logging.INFO,
-    log_format: LogFormat | None = None,
-) -> None:
+def _make_stream_logger(
+        *,
+        service_name: str,
+        environment: str,
+        version: str | None,
+        level: int | str,
+        log_format: LogFormat
+) -> logging.Handler:
     """
-    Configure application logging.
+    Create a logging handler that writes to stdout with the given configuration.
+    """
 
-    This function is intended to be called once by the application entry point.
-    """
     if isinstance(level, str):
         level = getattr(logging, level.upper(), logging.INFO)
 
@@ -120,23 +118,94 @@ def configure_logging(
             )
         )
 
-    root_logger = logging.getLogger()
-    root_logger.setLevel(level)
-    root_logger.handlers.clear()
-    root_logger.addHandler(handler)
+    return handler
 
-    if environment == 'development':
-        root_logger.debug("service_name=%s", service_name)
-        root_logger.debug("level=%s", level)
-        root_logger.debug("log_format=%s", log_format)
 
-    # Optional: reduce noisy dependency logs.
-    logging.getLogger("httpx").setLevel(logging.WARNING)
-    logging.getLogger("urllib3").setLevel(logging.WARNING)
+def configure_logging(
+    *,
+    service_name: str,
+    environment: str = "development",
+    version: str | None = None,
+    level: int | str = logging.INFO,
+    log_format: LogFormat | None = None,
+    logger_name: str | None = None,
+    override_root: bool = False
+) -> None:
+    """
+    Configure logging for the application.
+
+    By default this function will only attach a configured handler to the
+    named logger (logger_name). If logger_name is None and override_root is
+    False the function will configure the root logger handler but will NOT
+    clear existing handlers. If override_root is True, the root logger's
+    handlers will be cleared and replaced (use with care).
+
+    Typical usage from an application:
+      configure_logging(service_name=\"my-service\", environment=\"production\",
+                        log_format=\"json\", logger_name=\"my.service\")
+      logger = logging.getLogger(\"my.service\")
+    """
+
+    if log_format is None:
+        log_format = (
+            "josn"
+            if environment.lower() in {"production", "staging"}
+            else "console"
+        )
+
+    handler = _make_stream_logger(
+        service_name=service_name,
+        environment=environment,
+        version=version,
+        level=level,
+        log_format=log_format
+    )
+
+    if logger_name:
+        logger = logging.getLogger(logger_name)
+        logger.setLevel(level)
+        logger.addHandler(handler)
+        logger.propagate = False
+    else:
+        root_logger = logging.getLogger()
+        root_logger.setLevel(level)
+
+        if override_root:
+            root_logger.handlers.clear()
+        
+        root_logger.addHandler(handler)
 
 
 def get_logger(name: str) -> logging.Logger:
     return logging.getLogger(name)
+
+
+def get_structured_logger(
+    name: str,
+    *,
+    service_name: str,
+    environent: str = "development",
+    version: str | None = None,
+    level: int | str = logging.INFO,
+    log_format: LogFormat | None = None
+) -> logging.Logger:
+    """
+    Convenience: create (or get) a logger and attach a structured handler
+    to it. This does not touch the root logger and sets propagate=False,
+    so the returned logger is isolated from other handlers unless the caller
+    wants to re-enable propagation.
+    """
+    configure_logging(
+        service_name=service_name,
+        environment=environent,
+        version=version,
+        level=level,
+        log_format=log_format
+        logger_name=name,
+        override_root=False
+    )
+    return get_logger(name)
+
 
 def log_exception(
     logger: logging.Logger,
