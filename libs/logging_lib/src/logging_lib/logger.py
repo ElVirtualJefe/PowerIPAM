@@ -35,9 +35,7 @@ def _make_stream_logger(
     level: int | str,
     log_format: LogFormat | None,
 ) -> logging.Handler:
-    """
-    Create a logging handler that writes to stdout with the given configuration.
-    """
+    """Create a logging handler that writes to stdout with the given configuration."""
     resolved_level = _normalize_level(level)
 
     if log_format is None:
@@ -72,12 +70,9 @@ def _make_stream_logger(
     return handler
 
 
-def _logger_has_stream_handler(logger: logging.Logger) -> bool:
-    return any(
-        isinstance(handler, logging.StreamHandler)
-        and not isinstance(handler, JsonDatabaseLogHandler)
-        for handler in logger.handlers
-    )
+def _attach_stream_handler(logger: logging.Logger, handler: logging.Handler) -> None:
+    logger.handlers.clear()
+    logger.addHandler(handler)
 
 
 def configure_logging(
@@ -100,22 +95,19 @@ def configure_logging(
     """
     resolved_level = _normalize_level(level)
 
+    stream_handler = _make_stream_logger(
+        service_name=service_name,
+        environment=environment,
+        version=version,
+        level=resolved_level,
+        log_format=log_format,
+    )
+
     if logger_name:
         logger = logging.getLogger(logger_name)
         logger.setLevel(resolved_level)
         logger.propagate = False
-
-        if override_root or not _logger_has_stream_handler(logger):
-            logger.handlers.clear()
-            logger.addHandler(
-                _make_stream_logger(
-                    service_name=service_name,
-                    environment=environment,
-                    version=version,
-                    level=resolved_level,
-                    log_format=log_format,
-                )
-            )
+        _attach_stream_handler(logger, stream_handler)
 
         if database_connection is not None and not any(
             isinstance(existing, JsonDatabaseLogHandler) for existing in logger.handlers
@@ -135,19 +127,10 @@ def configure_logging(
     root_logger = logging.getLogger()
     root_logger.setLevel(resolved_level)
 
-    if override_root:
+    if override_root or root_logger.handlers:
         root_logger.handlers.clear()
 
-    if not _logger_has_stream_handler(root_logger):
-        root_logger.addHandler(
-            _make_stream_logger(
-                service_name=service_name,
-                environment=environment,
-                version=version,
-                level=resolved_level,
-                log_format=log_format,
-            )
-        )
+    root_logger.addHandler(stream_handler)
 
     if database_connection is not None and not any(
         isinstance(existing, JsonDatabaseLogHandler) for existing in root_logger.handlers
