@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "logging-lib"
-version = "0.3.0"
+version = "0.3.3"
 description = "Shared structured logging utilities for microservices with syslog-compatible console output and optional database persistence"
 readme = "README.md"
 authors = [
