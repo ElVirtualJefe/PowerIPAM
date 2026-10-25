@@ -185,7 +185,7 @@ class SyslogConsoleFormatter(logging.Formatter):
 
 
 class JsonDatabaseLogHandler(logging.Handler):
-    """Write JSON log records into a DB-API compatible database connection."""
+    """Write structured JSON log records to a database-agnostic connection."""
 
     def __init__(
         self,
@@ -195,14 +195,26 @@ class JsonDatabaseLogHandler(logging.Handler):
         service_name: str = "unknown-service",
         environment: str = "development",
         version: str | None = None,
+        database_dialect: str | None = None,
     ) -> None:
         super().__init__()
-        self.connection = connection
+        self.connection = self._normalize_connection(connection)
         self.table_name = self._validate_table_name(table_name)
         self.service_name = service_name
         self.environment = environment
         self.version = version
+        self.database_dialect = (database_dialect or self._detect_database_dialect(self.connection)).lower()
+        self._sqlalchemy_mode = self._is_sqlalchemy_connection(self.connection)
         self._ensure_table()
+
+    @staticmethod
+    def _normalize_connection(connection: Any) -> Any:
+        if hasattr(connection, "connect") and not hasattr(connection, "execute"):
+            try:
+                return connection.connect()
+            except Exception:
+                return connection
+        return connection
 
     @staticmethod
     def _validate_table_name(table_name: str) -> str:
@@ -210,24 +222,96 @@ class JsonDatabaseLogHandler(logging.Handler):
             raise ValueError("table_name must be a simple alphanumeric identifier")
         return table_name
 
-    def _ensure_table(self) -> None:
-        self.connection.execute(
-            f"""
-            CREATE TABLE IF NOT EXISTS {self.table_name} (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                timestamp TEXT NOT NULL,
-                level TEXT NOT NULL,
-                logger TEXT NOT NULL,
-                message TEXT NOT NULL,
-                service TEXT,
-                environment TEXT,
-                version TEXT,
-                payload TEXT NOT NULL
+    @staticmethod
+    def _detect_database_dialect(connection: Any) -> str:
+        dialect = getattr(connection, "dialect", None)
+        if dialect is not None:
+            name = getattr(dialect, "name", None)
+            if name:
+                return str(name)
+
+        engine = getattr(connection, "engine", None)
+        if engine is not None:
+            dialect = getattr(engine, "dialect", None)
+            if dialect is not None:
+                name = getattr(dialect, "name", None)
+                if name:
+                    return str(name)
+
+        module_name = "".join(
+            (
+                getattr(type(connection), "__module__", ""),
+                getattr(type(connection), "__name__", ""),
             )
-            """
+        ).lower()
+
+        if "sqlite" in module_name:
+            return "sqlite"
+        if "postgres" in module_name or "psycopg" in module_name:
+            return "postgresql"
+        if "mysql" in module_name or "mariadb" in module_name:
+            return "mysql"
+
+        return "sqlite"
+
+    @staticmethod
+    def _is_sqlalchemy_connection(connection: Any) -> bool:
+        return hasattr(connection, "dialect") and hasattr(connection, "execute")
+
+    @staticmethod
+    def _parameter_placeholder(database_dialect: str) -> str:
+        dialect = database_dialect.lower()
+        if dialect in {"postgresql", "postgres", "mysql", "mariadb", "mssql"}:
+            return "%s"
+        return "?"
+
+    def _ensure_table(self) -> None:
+        if self._sqlalchemy_mode:
+            try:
+                from sqlalchemy import text
+            except ImportError:
+                return
+
+            statement = text(
+                f"CREATE TABLE IF NOT EXISTS {self.table_name} ("
+                "id INTEGER PRIMARY KEY AUTOINCREMENT, "
+                "timestamp TEXT NOT NULL, "
+                "level TEXT NOT NULL, "
+                "logger TEXT NOT NULL, "
+                "message TEXT NOT NULL, "
+                "service TEXT, "
+                "environment TEXT, "
+                "version TEXT, "
+                "payload TEXT NOT NULL"
+                ")"
+            )
+            try:
+                self.connection.execute(statement)
+                self.connection.commit()
+            except Exception:
+                pass
+            return
+
+        create_sql = (
+            f"CREATE TABLE IF NOT EXISTS {self.table_name} ("
+            "id INTEGER PRIMARY KEY AUTOINCREMENT, "
+            "timestamp TEXT NOT NULL, "
+            "level TEXT NOT NULL, "
+            "logger TEXT NOT NULL, "
+            "message TEXT NOT NULL, "
+            "service TEXT, "
+            "environment TEXT, "
+            "version TEXT, "
+            "payload TEXT NOT NULL"
+            ")"
         )
+
         try:
-            self.connection.commit()
+            self.connection.execute(create_sql)
+            try:
+                self.connection.commit()
+            except Exception:
+                pass
         except Exception:
             pass
 
@@ -235,31 +319,66 @@ class JsonDatabaseLogHandler(logging.Handler):
         payload = self._payload_for_record(record)
         payload_text = json.dumps(payload, default=str)
 
+        if self._sqlalchemy_mode:
+            self._emit_sqlalchemy(record, payload, payload_text)
+            return
+
+        self._emit_dbapi(record, payload, payload_text)
+
+    def _emit_dbapi(self, record: logging.LogRecord, payload: dict[str, Any], payload_text: str) -> None:
+        placeholder = self._parameter_placeholder(self.database_dialect)
+        insert_sql = (
+            f"INSERT INTO {self.table_name} ("
+            "timestamp, level, logger, message, service, environment, version, payload) "
+            f"VALUES ({placeholder}, {placeholder}, {placeholder}, {placeholder}, "
+            f"{placeholder}, {placeholder}, {placeholder}, {placeholder})"
+        )
+        values = (
+            payload["timestamp"],
+            payload["level"],
+            payload["logger"],
+            payload["message"],
+            payload["service"],
+            payload["environment"],
+            payload.get("version"),
+            payload_text,
+        )
+
         try:
-            self.connection.execute(
-                f"""
-                INSERT INTO {self.table_name} (
-                    timestamp,
-                    level,
-                    logger,
-                    message,
-                    service,
-                    environment,
-                    version,
-                    payload
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                """,
-                (
-                    payload["timestamp"],
-                    payload["level"],
-                    payload["logger"],
-                    payload["message"],
-                    payload["service"],
-                    payload["environment"],
-                    payload.get("version"),
-                    payload_text,
-                ),
-            )
+            self.connection.execute(insert_sql, values)
+            try:
+                self.connection.commit()
+            except Exception:
+                pass
+        except Exception:
+            self.handleError(record)
+
+    def _emit_sqlalchemy(self, record: logging.LogRecord, payload: dict[str, Any], payload_text: str) -> None:
+        try:
+            from sqlalchemy import text
+        except ImportError:
+            self.handleError(record)
+            return
+
+        statement = text(
+            f"INSERT INTO {self.table_name} ("
+            "timestamp, level, logger, message, service, environment, version, payload) "
+            "VALUES (:timestamp, :level, :logger, :message, :service, :environment, "
+            ":version, :payload)"
+        )
+        params = {
+            "timestamp": payload["timestamp"],
+            "level": payload["level"],
+            "logger": payload["logger"],
+            "message": payload["message"],
+            "service": payload["service"],
+            "environment": payload["environment"],
+            "version": payload.get("version"),
+            "payload": payload_text,
+        }
+
+        try:
+            self.connection.execute(statement, params)
             try:
                 self.connection.commit()
             except Exception:
