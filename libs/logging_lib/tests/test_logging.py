@@ -1,5 +1,6 @@
 import json
 import logging
+import sqlite3
 
 import pytest
 
@@ -13,12 +14,6 @@ from logging_lib import (
 
 @pytest.fixture(autouse=True)
 def reset_logging():
-    """
-    Reset context and root logging before and after every test.
-
-    This prevents one test's handlers or request data from affecting
-    another test.
-    """
     clear_context()
     root_logger = logging.getLogger()
     original_handlers = root_logger.handlers[:]
@@ -46,9 +41,7 @@ def test_context_values_are_stored():
 
 def test_context_values_can_be_cleared():
     set_context(request_id="req-123")
-
     clear_context()
-
     assert get_context() == {}
 
 
@@ -72,7 +65,7 @@ def test_syslog_message_is_written_to_stdout(capsys):
     assert "1 " in output
     assert "orders-api" in output
     assert "orders" in output
-    assert "request_id=\"req-123\"" in output
+    assert 'request_id="req-123"' in output
     assert "Order processed" in output
 
 
@@ -87,8 +80,6 @@ def test_syslog_info_priority_is_correct(capsys):
 
     output = capsys.readouterr().out
 
-    # Facility local0 = 16, INFO severity = 6:
-    # 16 * 8 + 6 = 134
     assert output.startswith("<134>1 ")
 
 
@@ -129,7 +120,6 @@ def test_debug_messages_are_filtered_at_info_level(capsys):
     )
 
     logging.getLogger("orders").debug("Debug message")
-
     output = capsys.readouterr().out
 
     assert output == ""
@@ -154,3 +144,35 @@ def test_error_contains_exception_details(capsys):
     assert "Order processing failed" in output
     assert "ValueError" in output
     assert "Invalid order" in output
+
+
+def test_json_database_handler_writes_rows():
+    connection = sqlite3.connect(":memory:")
+
+    configure_logging(
+        service_name="orders-api",
+        environment="production",
+        log_format="syslog",
+        level="INFO",
+        database_connection=connection,
+        database_table_name="service_logs",
+    )
+
+    set_context(request_id="req-900")
+    logging.getLogger("orders").info("Inventory synced")
+
+    row = connection.execute(
+        "SELECT level, logger, message, payload FROM service_logs WHERE message = ?",
+        ("Inventory synced",),
+    ).fetchone()
+
+    assert row is not None
+    assert row[0] == "INFO"
+    assert row[1] == "orders"
+
+    payload = json.loads(row[3])
+    assert payload["request_id"] == "req-900"
+    assert payload["service"] == "orders-api"
+    assert payload["message"] == "Inventory synced"
+
+    connection.close()
