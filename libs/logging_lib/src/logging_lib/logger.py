@@ -38,8 +38,9 @@ def _make_stream_logger(
     """Create a logging handler that writes to stdout with the given configuration."""
     resolved_level = _normalize_level(level)
 
+    # Default to syslog output unless the caller explicitly chooses JSON.
     if log_format is None:
-        log_format = "json" if environment.lower() in {"production", "staging"} else "console"
+        log_format = "syslog"
 
     handler = logging.StreamHandler(sys.stdout)
     handler.setLevel(resolved_level)
