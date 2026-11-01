@@ -2,9 +2,11 @@
 Configuration to be used by the database library.
 """
 
-from functools import lru_cache
+from __future__ import annotations
 
+from functools import lru_cache
 from typing import ClassVar
+
 from pydantic import Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -78,23 +80,15 @@ class DatabaseSettings(BaseSettings):
 
         if self.url:
             return self.url
+
+        required = (self.username, self.password, self.host, self.port, self.name)
         
-        if not all(
-            value is not None
-            for value in (
-                self.username,
-                self.password,
-                self.host,
-                self.port,
-                self.name
-            )
-        ):
+        if not all(value is not None for value in required):
             raise ValueError(
                 "All individual connection parameters (username, password, host, port, name) must be set if DATABASE_URL is not provided."
             )
 
         password = self.password.get_secret_value()
-
         return f"postgresql+psycopg2://{self.username}:{password}@{self.host}:{self.port}/{self.name}"
 
 @lru_cache(maxsize=None)

@@ -1,12 +1,15 @@
 """
-Common Alembic Functionalities
+Common Alembic Functionalities for database migrations
 """
+
+from __future__ import annotations
 
 from alembic import context
 from alembic.script import ScriptDirectory
 from alembic.migration import MigrationContext
 
-from sqlalchemy import engine_from_config, pool
+from sqlalchemy import engine_from_config
+from sqlalchemy.pool import NullPool
 from sqlalchemy.engine import Connection
 from sqlalchemy.schema import MetaData
 
@@ -15,26 +18,36 @@ def run_migrations(
         target_metadata: MetaData,
         *,
         database_url: str | None = None
+        script_location: str | None = None,
+        config: context.Config | None = None,
 ) -> None:
-    """Run migrations for the given target metadata."""
+    """
+    Run migrations for the provided model metadata.
 
-    config = context.config
+    The calling service is responsible for passing the Alembic config
+    and migration script path relevant to its schema.
+    """
+
+    cfg = config or context.config
 
     if database_url is not None:
         # Escape percent interpolation
-        config.set_main_option("sqlalchemy.url", database_url.replace("%", "%%"))
+        cfg.set_main_option("sqlalchemy.url", database_url.replace("%", "%%"))
+
+    if script_location is not None:
+        cfg.set_main_option("script_location", script_location)
 
     if context.is_offline_mode():
-        _run_offline(target_metadata)
+        _run_offline(cfg, target_metadata)
     else:
-        _run_online(target_metadata)
+        _run_online(cfg, target_metadata)
 
 
-def _run_offline(target_metadata: MetaData) -> None:
+def _run_offline(cfg: context.Config, target_metadata: MetaData) -> None:
     """Run offline migrations for the given target metadata."""
 
     context.configure(
-        url=context.config.get_main_option("sqlalchemy.url"),
+        url=cfg.get_main_option("sqlalchemy.url"),
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
@@ -46,10 +59,10 @@ def _run_offline(target_metadata: MetaData) -> None:
         context.run_migrations()
 
 
-def _run_online(target_metadata: MetaData) -> None:
+def _run_online(cfg: context.Config, target_metadata: MetaData) -> None:
     """Run online migrations for the given target metadata."""
 
-    connection: Connection | None = context.config.attributes.get("connection")
+    connection: Connection | None = cfg.attributes.get("connection")
 
     if connection is not None:
         _run_with_connection(connection, target_metadata)
@@ -58,9 +71,9 @@ def _run_online(target_metadata: MetaData) -> None:
     # Come back and update this later
     # Needs to reflect actual configuration information
     conn = engine_from_config(
-        context.config.get_section(context.config.config_ini_section) or {},
+        cfg.get_section(cfg.config_ini_section) or {},
         prefix="sqlalchemy.",
-        poolclass=pool.NullPool
+        poolclass=NullPool
     )
 
     try:
@@ -88,10 +101,17 @@ def _run_with_connection(
         context.run_migrations()
 
 
-def has_pending_migrations(connection: Connection) -> bool:
+def has_pending_migrations(
+    connection: Connection,
+    *,
+    script_location: str | None = None
+) -> bool:
     """Check if there are pending migrations for the given connection."""
 
     config = context.config
+    if script_location is not None:
+        config.set_main_option("script_location", script_location)
+        
     script = ScriptDirectory.from_config(config)
 
     current_heads = MigrationContext.configure(connection).get_current_heads()
