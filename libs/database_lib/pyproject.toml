@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "database-lib"
-version = "0.1.0"
+version = "0.2.0"
 description = "Shared structured database connection management utilities for microservices"
 readme = "README.md"
 authors = [
@@ -13,24 +13,33 @@ authors = [
 license = { text = "MIT" }
 classifiers = [
     "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
-    "Topic :: Database"
+    "Topic :: Database",
+    "Topic :: Software Development :: Libraries :: Python Modules"
 ]
 requires-python = ">=3.10"
-debendencies = [
+dependencies = [
+    "pydantic>=2.0,<3.0",
     "pydantic-settings>=2.0,<3.0",
     "SQLAlchemy>=2.0,<3.0",
     "psycopg2-binary>=2.9,<3.0",
     "logging-lib>=0.1.0,<1.0",
-    "alembic>=1.10,<2.0"
+    "alembic>=1.13,<2.0"
 ]
 
 [project.optional-dependencies]
 dev = [
     "pytest>=8.0",
+    "pytest-cov>=5.0",
     "ruff>=0.6",
-    "mypy>=1.10"
+    "mypy>=1.10",
+    "testcontainers>=4.0"
 ]
+
+# Optional local dependency if logging-lib is part of the same monorepo or workspace.
+# You may remove this if logging-lib is installed separately from a package manager.
+logging-lib = { path = "../logging_lib", develop = true }
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/database_lib"]
@@ -39,7 +48,15 @@ packages = ["src/database_lib"]
 pythonpath = ["src"]
 testpaths = ["tests"]
 addopts = "-ra"
+asyncio_mode = "auto"
 
 [tool.ruff]
 line-length = 100
 target-version = "py310"
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+check_untyped_defs = true
