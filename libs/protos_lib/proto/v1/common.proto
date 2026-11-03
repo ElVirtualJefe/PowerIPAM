@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+package poweripam.v1;
+
 enum StateId {
     OFFLINE = 0;
     ONLINE = 1;

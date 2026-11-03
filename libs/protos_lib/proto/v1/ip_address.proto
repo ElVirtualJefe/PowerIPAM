@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+package poweripam.v1;
+
 import "google/protobuf/timestamp.proto";
 import "common.proto";
 
@@ -17,10 +19,11 @@ message IpAddress {
     string description = 4;
     bool is_gateway = 5;
     string hostname = 6;
-    StateId state_id = 7;
+    poweripam.StateId state_id = 7;
     bool is_available = 8;
     
 
+    google.protobuf.Timestamp last_scanned = 13;
     google.protobuf.Timestamp last_seen = 14;
     google.protobuf.Timestamp last_modified = 15;
     google.protobuf.Timestamp date_created = 16;
