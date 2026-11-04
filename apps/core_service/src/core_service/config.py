@@ -1,8 +1,10 @@
 from functools import lru_cache
 
 from typing import ClassVar
-#from pydantic import Field
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+from database_lib.config import DatabaseSettings
 
 
 class Settings(BaseSettings):
@@ -27,9 +29,9 @@ class Settings(BaseSettings):
     log_level: str = "DEBUG"
 
     # Database settings
-    database_url: str | None = None
-    database_username: str | None = None
-    database_password: str | None = None
+    database: DatabaseSettings = Field(
+        default_factory=DatabaseSettings
+    )
 
 
 @lru_cache

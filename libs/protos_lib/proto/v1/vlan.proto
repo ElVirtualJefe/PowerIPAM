@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+package poweripam.v1;
+
+import "google/protobuf/timestamp.proto";
+import "v1/common.proto";
+
+service VlanService {
+    rpc GetVlanById (VlanRequest) returns (VlanResponse);
+    rpc AddVlan (Vlan) returns (VlanResponse);
+    rpc UpdateVlan (Vlan) returns (VlanResponse);
+    rpc DeleteVlanById (VlanRequest) returns (VlanResponse);
+}
+
+message Vlan {
+    string id = 1;
+    string name = 2;
+    int32 vlan_number = 3;
+    string description = 4;
+    repeated string subnet = 5;
+
+    google.protobuf.Timestamp last_modified = 15;
+    google.protobuf.Timestamp date_created = 16;
+}
+
+message VlanRequest {
+    oneof request_field {
+        string id = 1;
+        string name = 2;
+        int32 vlan_number = 3;
+    }
+}
+
+message VlanResponse {
+    repeated Vlan vlan = 1;
+}

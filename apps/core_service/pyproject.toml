@@ -14,7 +14,7 @@ license = { text = "MIT" }
 classifiers = [
     "Programming Language :: Python :: 3",
     "Operating System :: OS Independent",
-    "Topic :: IPAM"
+    "Topic :: System :: Networking"
 ]
 requires-python = ">=3.10"
 debendencies = [
@@ -28,6 +28,10 @@ dev = [
     "ruff>=0.6",
     "mypy>=1.10"
 ]
+
+[project.urls]
+Homepage = "https://github.com/ElVirtualJefe/PowerIPAM"
+Repository = "https://github.com/ElVirtualJefe/PowerIPAM"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src"]

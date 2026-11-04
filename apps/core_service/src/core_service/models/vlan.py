@@ -28,7 +28,7 @@ class VlanModel(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     subnets = relationship(
         'SubnetModel',
         backref='subnets',
-        lazy='True'
+        lazy=True
     )
 
     def __repr__(self):

@@ -18,6 +18,7 @@ dependencies = [
   # Install the shared packages and services in editable mode locally
   "-e ./libs/logging_lib",
   "-e ./libs/database_lib",
+  "-e ./libs/protos_lib",
   "-e ./apps/scan_agent",
   "-e ./apps/web_ui",
 ]

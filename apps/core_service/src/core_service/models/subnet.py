@@ -28,7 +28,7 @@ class SubnetModel(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         backref='ip_addresses',
         lazy='True'
     )
-    master_subnet_id = Column(
+    parent_subnet_id = Column(
         Uuid(as_uuid=True),
         ForeignKey("subnets.id"),
         nullable=True
@@ -71,7 +71,7 @@ id: {self.id}
 name: {self.name}
 display_name: {self.display_name}
 description: {self.description}
-master_subnet_id: {self.master_subnet_id}
+parent_subnet_id: {self.parent_subnet_id}
 allow_requests: {self.allow_requests}
 do_discovery: {self.do_discovery}
 do_scan: {self.do_scan}

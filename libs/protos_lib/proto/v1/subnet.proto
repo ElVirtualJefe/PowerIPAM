@@ -3,6 +3,7 @@ syntax = "proto3";
 package poweripam.v1;
 
 import "google/protobuf/timestamp.proto";
+import "v1/common.proto";
 
 service SubnetService {
     rpc GetSubnetById (SubnetRequest) returns (SubnetResponse);
@@ -14,11 +15,14 @@ service SubnetService {
 message Subnet {
     string id = 1;
     string name = 2;
-    string cidr = 3;
+    string display_name = 3;
     string description = 4;
-    poweripam.StateId state_id = 5;
-    string vlan_id = 6;
-    bool allow_requests = 7;
+    string vlan_id = 5;
+    bool allow_requests = 6;
+    repeated string ip_address = 7;
+    string parent_subnet_id = 8;
+    bool do_discovery = 9;
+    bool do_scan = 10;
 
     google.protobuf.Timestamp last_scanned = 13;
     google.protobuf.Timestamp last_seen = 14;
