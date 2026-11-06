@@ -38,8 +38,9 @@ def handler(args=None) -> None:
     import nmap
 
     scanner = nmap.PortScanner()
-    aScan = AsyncSubnetScanner('10.160.0.0/24')
-    results = scanner.scan(hosts='10.160.0.0/24', arguments=settings.NMAP_ARGUMENTS["pingScan"])
+    aScan = AsyncSubnetScanner('10.160.0.0/24', max_workers=4)
+    #results = scanner.scan(hosts='10.160.0.0/24', arguments=settings.NMAP_ARGUMENTS["pingScan"])
+    results = aScan.scan()
     #print(f'{results=}')
     print(f'{results.get("scan",None)=}')
 

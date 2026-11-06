@@ -81,7 +81,11 @@ class AsyncSubnetScanner:
         
         # -sn specifies a ping scan (host discovery only)
         # The callback function handles data as soon as Nmap returns it
-        scanner.scan(hosts=subnet, arguments='-sn', callback=self._callback_result)
+        scanner.scan(
+            hosts=subnet, 
+            arguments='-sn', 
+            callback=self._callback_result
+        )
         
         # Keep the thread alive while Nmap runs its background processes
         while scanner.still_scanning():
@@ -105,9 +109,16 @@ class AsyncSubnetScanner:
         """
         threads = []
         start_time = time.time()
+        subnet_iter = iter(self.subnets)
+        pending = {}
 
-        self._logger.info(f"Starting concurrent scans across {len(self.subnets)} subnets...")
+        self._logger.info(
+            "Starting %d concurrent scans across %d subnets...", 
+            self.max_workers, 
+            len(self.subnets)
+        )
 
+        """
         # Spawn one thread per subnet in list
         for subnet in self.subnets:
             self._logger.debug(f"[*] Creating Thread for subnet: {subnet}")
@@ -118,9 +129,38 @@ class AsyncSubnetScanner:
 
         for t in threads:
             t.join()
+        """
+
+        with ThreadPoolExecutor(
+            max_workers=self.max_workers,
+            thread_name_prefix="nmap-scan"
+        ) as executer:
+
+            def submit_next():
+                try:
+                    subnet = next(subnet_iter)
+                except StopIteration:
+                    return
+
+                pending[executer.submit(self._scan_subnet_worker, subnet)] = subnet
+
+        for _ in range(min(self.max_workers, len(self.subnets))):
+            submit_next()
+
+        while pending:
+            completed, _ = wait(pending, return_when=FIRST_COMPLETED)
+
+            for future in completed:
+                subnet = pending.pop(future)
+                try:
+                    future.result()
+                except Exception as e:
+                    self._logger.exception("Error occurred while scanning subnet %s: %s", subnet, e)
+
+                submit_next()
 
         elapsed_time = time.time() - start_time
-        self._logger.debug(f"All threads completed in {elapsed_time:.2f} seconds.")
+        self._logger.debug("All threads completed in %.2f seconds.", elapsed_time)
         return self.scan_results
 
 
