@@ -1,24 +1,11 @@
 """
-#from pathlib import Path
-#print(f"Path = {Path(__file__).resolve().parent.parent}")
-
-from . import log_manager, APPLICATION_NAME
-from logging import getLogger, currentframe
-
-log_manager.configure_logging()
-#print(f"__init__ {log_manager.application_name=}")
-#print(f"__init__ {log_manager.log_level=}")
-#print(f"__init__ {log_manager.log_file_level=}")
+Scan agent for scanning subnets for live hosts
 """
 
 from logging import currentframe
-#from logging_lib import set_context, get_logger
 from logging_lib import configure_logging, set_context, remove_context, get_logger, whoami
 
-if __package__:
-    from .config import get_settings
-else:
-    from config import get_settings
+from config import get_settings
 
 settings = get_settings()
 
@@ -32,13 +19,8 @@ configure_logging(
 
 app_logger = get_logger(settings.service_name)
 app_logger.debug("---+++  Initialized Logger for %s  +++---", (__name__))
-#app_logger.info('test log...')
 
 app_logger.debug('Starting Scan Agent Process...')
-
-#from .helpers import common
-#from .helpers import config as conf
-#from helpers.logger import AppLogger
 
 def handler(args=None) -> None:
     """
@@ -52,11 +34,7 @@ def handler(args=None) -> None:
     func_logger = get_logger(settings.service_name).getChild(f'{whoami(currentframe())}')
     func_logger.info('Starting PowerIPAM Scan Agent Application...')
 
-    if __package__:
-        from .implementations.nmap import AsyncSubnetScanner
-    else:
-        from implementations.nmap import AsyncSubnetScanner
-
+    from implementations.nmap import AsyncSubnetScanner
     import nmap
 
     scanner = nmap.PortScanner()

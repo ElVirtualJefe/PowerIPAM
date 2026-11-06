@@ -17,8 +17,9 @@ classifiers = [
     "Topic :: IPAM"
 ]
 requires-python = ">=3.10"
-debendencies = [
-    "logging-lib>=0.2.0"
+dependencies = [
+    "logging-lib>=0.2.0",
+    "protos-lib>=0.1.0"
 ]
 
 [project.optional-dependencies]

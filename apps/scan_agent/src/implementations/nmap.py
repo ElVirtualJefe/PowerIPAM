@@ -1,17 +1,12 @@
-#from .. import log_manager, APPLICATION_NAME
-from logging import currentframe
-from helpers import constants as c
-from logging_lib import configure_logging, clear_context, set_context, get_logger, whoami
+"""
+Async Subnet Scanner using NMAP for PowerIPAM
+"""
 
-#print(f"{APPLICATION_NAME=}")
-#print(f"{currentframe()=}")
-#print(f"{log_manager.whoami(currentframe())=}")
-#print(f"{log_manager.whoami(currentframe()).split(".")[0]=}")
-#clear_context()
-#set_context(file=__file__.rsplit(c.DELIM, maxsplit=1)[-1], module=__name__)
-app_logger = get_logger(f'{c.LOGGER_NAME}').getChild(f'{whoami(currentframe())}')
-#print(f"{app_logger.name=}")
-app_logger.info('Initializing NMAP Class...')
+from concurrent.futures import ThreadPoolExecutor, FIRST_COMPLETED, wait
+
+from logging import currentframe
+from main import app_logger as logger
+from logging_lib import clear_context, set_context, get_logger, whoami
 
 import nmap
 import json
@@ -25,18 +20,30 @@ class AsyncSubnetScanner:
     Async Scanner Class for managing scanner processes.
     """
 
-    def __init__(self, subnets):
+    def __init__(
+        self, 
+        subnets,
+        max_workers=4,
+        poll_interval=0.5
+    ):
         """
         Initialize the scanner.
         """
 
-        self.subnets = subnets if isinstance(subnets, list) else [subnets]
+        self.subnets = list(subnets) if isinstance(subnets, (list, tuple)) else [subnets]
+
+        if max_workers < 1:
+            raise ValueError("max_workers must be at least 1")
+        if poll_interval <= 0:
+            raise ValueError("poll_interval must be greater than 0")
 
         # Thread-safe storage for consolidated results
         self.scan_results = {}
+        self.max_workers = max_workers
+        self.poll_interval = poll_interval
+        self._results_lock = threading.Lock()
+        self._logger = logger.getChild(whoami(currentframe()))
 
-        #print(f"{app_logger.level=}")
-        #print(f"{app_logger.getEffectiveLevel()=}")
 
     def _callback_result(self, host, scan_result):
         """
@@ -49,27 +56,27 @@ class AsyncSubnetScanner:
         host_data = scan_result['scan'][host]
         
         # Only process if the host is up
-        if host_data.get('status', {}).get('state') == 'up':
-            hostname = ""
-            if host_data.get('hostnames'):
-                hostname = host_data['hostnames'][0].get('name', '')
+        if host_data.get('status', {}).get('state') != 'up':
+            return
+    
+        hostnames = host_data.get('hostnames', [])
+        hostname = hostnames[0].get('name', '') if hostnames else ''
 
-            vendor = host_data.get('vendor', {})
-
-            # Safely write to the global dictionary across threads
-            with _global_results_lock:
-                self.scan_results[host] = {
-                    "status": "up",
-                    "hostname": hostname,
-                    "vendor": vendor
-                }
-                app_logger.info(f"[+] Found active host: {host}")
+        # Safely write to the global dictionary across threads
+        with self._results_lock:
+            self.scan_results[host] = {
+                "status": "up",
+                "hostname": hostname,
+                "vendor": host_data.get('vendor', {})
+            }
+        
+        self._logger.info("[+] Found active host: %s", host)
 
     def _scan_subnet_worker(self, subnet):
         """
         Worker function executed by each thread to scan a specific subnet range asynchronously.
         """
-        app_logger.info(f"[*] Thread started for subnet: {subnet}")
+        self._logger.info(f"[*] Thread started for subnet: {subnet}")
         scanner = nmap.PortScannerAsync()
         
         # -sn specifies a ping scan (host discovery only)
@@ -80,7 +87,7 @@ class AsyncSubnetScanner:
         while scanner.still_scanning():
             time.sleep(0.5)
             
-        app_logger.info(f"[-] Thread finished for subnet: {subnet}")
+        self._logger.info(f"[-] Thread finished for subnet: {subnet}")
 
         # ==========================================
         # CRITICAL FIX FOR PYTHON 3.14 DEALLOCATOR
@@ -99,11 +106,11 @@ class AsyncSubnetScanner:
         threads = []
         start_time = time.time()
 
-        app_logger.info(f"Starting concurrent scans across {len(self.subnets)} subnets...")
+        self._logger.info(f"Starting concurrent scans across {len(self.subnets)} subnets...")
 
         # Spawn one thread per subnet in list
         for subnet in self.subnets:
-            app_logger.debug(f"[*] Creating Thread for subnet: {subnet}")
+            self._logger.debug(f"[*] Creating Thread for subnet: {subnet}")
 
             t = threading.Thread(target=self._scan_subnet_worker, args=(subnet,))
             threads.append(t)
@@ -113,11 +120,11 @@ class AsyncSubnetScanner:
             t.join()
 
         elapsed_time = time.time() - start_time
-        app_logger.debug(f"All threads completed in {elapsed_time:.2f} seconds.")
+        self._logger.debug(f"All threads completed in {elapsed_time:.2f} seconds.")
         return self.scan_results
 
 
-def main():
+"""def main():
     # Example: List of target subnets to scan concurrently via threads
     subnets_to_scan = [
         "192.168.1.1",
@@ -137,3 +144,4 @@ if __name__ == "__main__":
         multiprocessing.freeze_support()
 
     main()
+"""
