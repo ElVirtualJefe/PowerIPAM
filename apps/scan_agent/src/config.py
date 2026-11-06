@@ -32,6 +32,10 @@ class Settings(BaseSettings):
     environment: str = "development"
     log_level: str = "DEBUG"
 
+    # PowerIPAM core-service settings
+    core_service_host: str = "localhost"
+    core_service_port: int = 5000
+
 
 @lru_cache
 def get_settings() -> Settings:

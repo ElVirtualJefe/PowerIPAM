@@ -6,6 +6,7 @@ from concurrent.futures import ThreadPoolExecutor, FIRST_COMPLETED, wait
 
 from logging import currentframe
 from main import app_logger as logger
+from main import settings
 from logging_lib import clear_context, set_context, get_logger, whoami
 
 import nmap
@@ -68,7 +69,7 @@ class AsyncSubnetScanner:
         # The callback function handles data as soon as Nmap returns it
         result = scanner.scan(
             hosts=subnet, 
-            arguments='-sn', 
+            arguments=settings.NMAP_ARGUMENTS.get("pingScan", "-sn")
         )
         
         # Keep the thread alive while Nmap runs its background processes
