@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package poweripam.v1;
+
+service SettingsService {
+    rpc GetSettings (SettingsRequest) returns (stream Setting)
+}
+
+message SettingsRequest {
+    string setting_name = 1;
+}
+
+message Setting {
+    string key = 1;
+    string value = 2;
+}

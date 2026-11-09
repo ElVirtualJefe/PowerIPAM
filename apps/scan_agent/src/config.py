@@ -36,6 +36,9 @@ class Settings(BaseSettings):
     core_service_host: str = "localhost"
     core_service_port: int = 5000
 
+    # Scan agent settings
+    scan_interval: int = 60  # in seconds
+
 
 @lru_cache
 def get_settings() -> Settings:
