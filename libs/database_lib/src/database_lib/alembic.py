@@ -17,7 +17,7 @@ from sqlalchemy.schema import MetaData
 def run_migrations(
         target_metadata: MetaData,
         *,
-        database_url: str | None = None
+        database_url: str | None = None,
         script_location: str | None = None,
         config: context.Config | None = None,
 ) -> None:
